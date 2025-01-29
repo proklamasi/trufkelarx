@@ -1,0 +1,315 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #2e7d32;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#gameRoom {
+    display: none;
+    width: 80%;
+    height: 80vh;
+    background-color: #388e3c;
+    border-radius: 10px;
+    position: relative;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+}
+
+.chair {
+    width: 100px;
+    height: 100px;
+    background-color: #5d4037;
+    border-radius: 50%;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    color: white;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+#bottomChair { bottom: 20px; left: 50%; transform: translateX(-50%); }
+#leftChair { top: 50%; left: 20px; transform: translateY(-50%); }
+#topChair { top: 20px; left: 50%; transform: translateX(-50%); }
+#rightChair { top: 50%; right: 20px; transform: translateY(-50%); }
+
+.deck {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px; /* Width of a single card */
+    height: 90px; /* Height of a single card */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+.card {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+}
+
+.card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+    filter: grayscale(50%);
+    transition: all 0.3s ease;
+}
+
+.card:not(.disabled):hover {
+    transform: translateY(-10px);
+    transition: transform 0.2s ease;
+}
+
+.hand {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+}
+
+.hand .card {
+    position: relative;
+    width: 60px;
+    height: 90px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+.hand.unclickable .card {
+    pointer-events: none;
+}
+
+.phase {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+form, button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    padding: 10px;
+    background-color: #4caf50;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+form input {
+    padding: 10px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+form button:hover, button:hover {
+    background-color: #45a049;
+}
+
+form button:active, button:active {
+    background-color: #388e3c;
+}
+
+.play-area {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    display: none;
+}
+
+.pile {
+    width: 60px;
+    height: 90px;
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px dashed white;
+    border-radius: 5px;
+}
+
+#bottomPile { bottom: 0; left: 50%; transform: translateX(-50%); }
+#leftPile { top: 50%; left: 0; transform: translateY(-50%); }
+#topPile { top: 0; left: 50%; transform: translateX(-50%); }
+#rightPile { top: 50%; right: 0; transform: translateY(-50%); }
+
+.discard-pile {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 40px; /* Smaller width */
+    height: 60px; /* Smaller height */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+.info-box {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 200px;
+    background-color: #4caf50;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 0.9em;
+}
+
+.truf-suit-row,
+.game-mode-row,
+.score-row {
+    margin-bottom: 10px;
+}
+
+.score-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.player-name-column,
+.bid-value-column,
+.turn-score-column {
+    flex: 1;
+    text-align: center;
+}
+
+#chooseGameModeButtons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10; /* Ensure it appears above other elements */
+}
+
+#chooseGameModeButtons button {
+    margin: 0 10px;
+    padding: 10px 20px;
+    background-color: #4caf50;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+#chooseGameModeButtons button:hover {
+    background-color: #45a049;
+}
+
+#chooseGameModeButtons button:active {
+    background-color: #388e3c;
+}
+
+.error-message {
+    color: #ff0000;
+    background-color: #ffe6e6;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.winner-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    font-size: 1.2em;
+    z-index: 100;
+    animation: fadeInOut 2s ease-in-out;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.scoreboard {
+    position: absolute;
+    top: 180px;
+    right: 20px;
+    width: 200px;
+    background-color: #4caf50;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    color: white;
+}
+
+.scoreboard-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 5px;
+}
+
+.trick-wins, .total-wins {
+    margin-bottom: 10px;
+}
+
+.section-title {
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.score-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.player-name {
+    font-weight: bold;
+    flex: 2;
+}
+
+.player-wins {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.9em;
+    flex: 1;
+    text-align: center;
+}
