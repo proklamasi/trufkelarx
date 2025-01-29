@@ -16,16 +16,16 @@ class TrufGame {
 
     createDeck() {
         const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
-        const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'j', 'q', 'k', 'a'];
         const bidValues = {
             '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
-            'J': 0, 'Q': 0, 'K': 0, 'A': 1
+            'j': 0, 'q': 0, 'k': 0, 'a': 1
         };
         const bidRanks = {
-            'J_of_clubs': 1, 'J_of_diamonds': 2, 'J_of_hearts': 3, 'J_of_spades': 4,
-            'Q_of_clubs': 5, 'Q_of_diamonds': 6, 'Q_of_hearts': 7, 'Q_of_spades': 8,
-            'K_of_clubs': 9, 'K_of_diamonds': 10, 'K_of_hearts': 11, 'K_of_spades': 12,
-            'A_of_clubs': 13, 'A_of_diamonds': 14, 'A_of_hearts': 15, 'A_of_spades': 16,
+            'j_of_clubs': 1, 'j_of_diamonds': 2, 'j_of_hearts': 3, 'j_of_spades': 4,
+            'q_of_clubs': 5, 'q_of_diamonds': 6, 'q_of_hearts': 7, 'q_of_spades': 8,
+            'k_of_clubs': 9, 'k_of_diamonds': 10, 'k_of_hearts': 11, 'k_of_spades': 12,
+            'a_of_clubs': 13, 'a_of_diamonds': 14, 'a_of_hearts': 15, 'a_of_spades': 16,
             '2_of_clubs': 17, '2_of_diamonds': 18, '2_of_hearts': 19, '2_of_spades': 20,
             '3_of_clubs': 21, '3_of_diamonds': 22, '3_of_hearts': 23, '3_of_spades': 24,
             '4_of_clubs': 25, '4_of_diamonds': 26, '4_of_hearts': 27, '4_of_spades': 28,
@@ -150,7 +150,7 @@ class TrufGame {
         // Define card values for comparison (A is highest)
         const cardValues = {
             '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
-            'J': 11, 'Q': 12, 'K': 13, 'A': 14
+            'j': 11, 'q': 12, 'k': 13, 'a': 14
         };
 
         // Separate trump cards and leading suit cards
