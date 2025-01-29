@@ -66,9 +66,10 @@ h1 {
 .card.disabled {
     opacity: 0.5;
     cursor: not-allowed !important;
-    pointer-events: none;
+    pointer-events: none !important;
     filter: grayscale(50%);
     transition: all 0.3s ease;
+    transform: none !important;
 }
 
 .card:not(.disabled):hover {
@@ -93,7 +94,8 @@ h1 {
 }
 
 .hand.unclickable .card {
-    pointer-events: none;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
 }
 
 .phase {
@@ -103,6 +105,20 @@ h1 {
     transform: translateX(-50%);
     font-size: 1.5em;
     font-weight: bold;
+}
+
+.phase-notification {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 1.2em;
+    z-index: 1000;
+    animation: fadeInOut 2s ease-in-out;
 }
 
 form, button {
@@ -312,4 +328,106 @@ form button:active, button:active {
     font-size: 0.9em;
     flex: 1;
     text-align: center;
+}
+
+/* Add responsive design rules */
+@media screen and (max-width: 768px) {
+    #gameRoom {
+        width: 100%;
+        height: 100vh;
+        padding: 10px;
+    }
+
+    .chair {
+        width: 60px;
+        height: 60px;
+        font-size: 0.9em;
+    }
+
+    .hand {
+        bottom: 10px;
+        gap: 5px;
+    }
+
+    .hand .card {
+        width: 40px;  /* Smaller cards for mobile */
+        height: 60px;
+    }
+
+    .pile {
+        width: 40px;
+        height: 60px;
+    }
+
+    .play-area {
+        width: 160px;
+        height: 160px;
+    }
+
+    .info-box {
+        width: 150px;
+        font-size: 0.8em;
+        right: 5px;
+    }
+
+    .scoreboard {
+        width: 150px;
+        font-size: 0.8em;
+        right: 5px;
+    }
+
+    #chooseGameModeButtons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    #chooseGameModeButtons button {
+        font-size: 0.9em;
+        padding: 8px 16px;
+    }
+}
+
+/* Add touch-friendly interactions */
+@media (hover: none) {
+    .card:not(.disabled):hover {
+        transform: translateY(-5px);  /* Smaller hover effect for touch devices */
+    }
+
+    .card:not(.disabled):active {
+        transform: translateY(-5px);
+    }
+}
+
+/* Add viewport height fix for mobile browsers */
+@supports (-webkit-touch-callout: none) {
+    #gameRoom {
+        height: -webkit-fill-available;
+    }
+}
+
+.final-score-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.final-score-content {
+    background: #4caf50;
+    padding: 20px;
+    border-radius: 10px;
+    min-width: 300px;
+}
+
+.final-score-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }

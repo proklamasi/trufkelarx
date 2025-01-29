@@ -39,6 +39,9 @@ let currentTurn = null;
 let firstPlayedSuit = null; // Add this line to track first played suit
 let trufSuit = ''; // Add this line to store the trump suit
 let discardPile = []; // Add this line to store the discard pile
+let isDiscardUpdated = false; // check if discard pile has been updated
+let hasPlayedCard = false; // Track if player has played a card in current round
+
 
 
 socket.on('updateCurrentTurn', (turnPlayerId) => {
@@ -74,15 +77,23 @@ function updateHandClickability() {
 function canPlayTrufSuit() {
     // Check if any truf card has been played before
     const trufPlayed = discardPile.some(card => card.card.suit === trufSuit);
-    console.log('Trump played:', trufPlayed, 'Current truf suit:', trufSuit, 'Discard pile:', discardPile);
+    console.log('Trump played:', trufPlayed, 'Current truf suit:', trufSuit);
     
     // Check if player only has truf cards left
     const onlyTrufCardsLeft = Array.from(document.querySelectorAll('#playerHand .card'))
         .every(card => card.dataset.suit === trufSuit);
     console.log('Only truf cards left:', onlyTrufCardsLeft);
+
+    // Check if discard pile has been updated
+    console.log('Discard pile updated:', isDiscardUpdated);
     
-    return trufPlayed || onlyTrufCardsLeft;
+    // Can play if any condition is true
+    const canPlay = trufPlayed || onlyTrufCardsLeft || isDiscardUpdated;
+    console.log('Can play trump:', canPlay);
+    
+    return canPlay;
 }
+
 
 socket.on('gameStarted', (gameState) => {
     console.log('Game started', gameState);
@@ -150,6 +161,7 @@ socket.on('clearPiles', () => {
         const pileElement = document.getElementById(pileId);
         pileElement.innerHTML = ''; // Clear the pile
     });
+    hasPlayedCard = false; // Reset the flag when piles are cleared
 });
 
 socket.on('phaseChanged', (phase) => {
@@ -164,6 +176,8 @@ socket.on('phaseChanged', (phase) => {
 socket.on('updateDiscardPile', (newDiscardPile) => {
     discardPile = newDiscardPile; // Store the complete discard pile data
     console.log('Updated discard pile:', discardPile);
+    isDiscardUpdated = true;
+    
     const discardPileElement = document.getElementById('discardPile');
     if (!discardPileElement) {
         console.error('Discard pile element not found');
@@ -433,23 +447,31 @@ function playCard(cardElement, hand) {
 }
 
 function playCardPlaying1(cardElement, hand) {
-    if (gamePhase !== 'playing1-phase' || currentTurn !== socket.id) return;
+    if (gamePhase !== 'playing1-phase' || 
+        currentTurn !== socket.id || 
+        hasPlayedCard) return;
 
     const cardIndex = parseInt(cardElement.dataset.index, 10);
     if (isNaN(cardIndex) || cardIndex < 0 || cardIndex >= hand.length) return;
 
     const card = hand[cardIndex];
-    hand.splice(cardIndex, 1); // Remove card from hand immediately
     
+    // Validate before doing anything with the card
+    if (!isCardPlayable(card, hand)) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'error-message';
+        messageDiv.textContent = 'Cannot play truf suit card yet';
+        document.getElementById('gameRoom').appendChild(messageDiv);
+        setTimeout(() => messageDiv.remove(), 2000);
+        return;
+    }
+
+    // Only proceed if card is playable
     socket.emit('playCardPlaying1', { 
         playerId: socket.id, 
         pileId: 'bottomPile', 
         card 
     });
-    
-    // Update hand display immediately after playing
-    displayPlayerHand([{ id: socket.id, hand }]);
-    updateHandClickability();
 }
 
 function flipCard(cardElement) {

@@ -154,14 +154,17 @@ io.on('connection', (socket) => {
         );
         if (cardIndex === -1) return;
 
-        // Check if the play is valid according to truf suit rules
+        // Validate card play before modifying any state
         if (!game.isValidCardPlay(player, data.card)) {
             socket.emit('invalidPlay', 'Cannot play truf suit card yet');
             return;
         }
 
-        // Play card logic
+        // Only proceed with card play if it's valid
         player.hand.splice(cardIndex, 1);
+        io.emit('updateHands', game.getGameState().players);
+
+        // Rest of the play logic
         const pileIds = ['bottomPile', 'rightPile', 'topPile', 'leftPile'];
         game.players.forEach((p, index) => {
             const perspectivePileId = pileIds[(index - playerIndex + 4) % 4];
