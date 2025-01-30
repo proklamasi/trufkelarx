@@ -49,6 +49,9 @@ io.on('connection', (socket) => {
 
         player.hand.splice(cardIndex, 1); // Remove the card from the player's hand
 
+        // Get all player names first
+        const allPlayerNames = game.players.map(p => p.name);
+
         const pileIds = ['bottomPile', 'rightPile', 'topPile', 'leftPile'];
         game.players.forEach((player, index) => {
             const perspectivePileId = pileIds[(index - playerIndex + 4) % 4];
@@ -79,7 +82,18 @@ io.on('connection', (socket) => {
                     const playerNames = game.pile.map(({ playerIndex }) => game.players[playerIndex].name);
                     const bidValues = game.pile.map(({ card }) => card.bidValue);
                     game.initialBidValues = [...bidValues];
-                    io.emit('updatePlayerNamesAndBidValues', { playerNames, bidValues });
+
+                    // Get bid values in correct player order
+                    const orderedBidValues = allPlayerNames.map(name => {
+                        const play = game.pile.find(p => game.players[p.playerIndex].name === name);
+                        return play ? play.card.bidValue : 0;
+                    });
+
+                    // Emit player names and bid values in consistent order
+                    io.emit('updatePlayerNamesAndBidValues', {
+                        playerNames: allPlayerNames,
+                        bidValues: orderedBidValues
+                    });
 
                     // Determine the game mode based on the sum of bid values
                     const bidValueSum = bidValues.reduce((sum, value) => sum + value, 0);
@@ -111,12 +125,6 @@ io.on('connection', (socket) => {
 
                     io.emit('clearPiles');
                     game.pile = [];
-
-                    // Remove this duplicate block
-                    // if (game.gameMode && !game.gameMode.startsWith('Pas')) {
-                    //     game.phase = 'playing1-phase';
-                    //     io.emit('phaseChanged', game.phase);
-                    // }
                 }, 3000);
             }, 2000);
         }
@@ -171,38 +179,53 @@ io.on('connection', (socket) => {
             io.to(p.id).emit('cardPlayed', { 
                 pileId: perspectivePileId, 
                 card: data.card, 
-                faceUp: true 
+                faceUp: data.card.suit === game.trufSuit ? false : true
             });
         });
 
-        // Add card to pile with player info
-        game.pile.push({ card: data.card, playerIndex, playerId: socket.id });
-
+        // Add card to pile with player info and face-up state
+        game.pile.push({ 
+            card: data.card, 
+            playerIndex, 
+            playerId: socket.id,
+            faceUp: data.card.suit === game.trufSuit ? false : true 
+        });
+        
         // If all 4 cards played, determine winner
         if (game.pile.length === 4) {
-            const winningPlay = game.compareCards(game.pile);
-            game.roundWinner = game.players[winningPlay.playerIndex];
-            
-            // Notify all players about the winner
-            io.emit('roundWinner', {
-                winnerName: game.roundWinner.name,
-                winningCard: winningPlay.card
+            // First flip any face-down cards
+            game.pile.forEach(play => {
+                if (!play.faceUp) {
+                    game.players.forEach((player, index) => {
+                        const perspectivePileId = pileIds[(index - play.playerIndex + 4) % 4];
+                        io.to(player.id).emit('cardFlipped', { 
+                            pileId: perspectivePileId, 
+                            card: play.card,
+                            faceUp: true
+                        });
+                    });
+                }
             });
-
-            // Move cards to discard pile
-            game.discardPile.push(...game.pile);
-            console.log('Discard Pile after moving cards:', game.discardPile); // Debug statement
-
-            io.emit('updateDiscardPile', game.discardPile);
-
-            // Wait a moment before clearing piles
+        
+            // Wait for flip animation, then handle winner and cleanup
             setTimeout(() => {
-                io.emit('clearPiles');
-                game.pile = [];
+                const winningPlay = game.compareCards(game.pile);
+                game.roundWinner = game.players[winningPlay.playerIndex];
                 
-                // Set next turn to round winner
-                game.currentTurn = game.roundWinner;
-                io.emit('updateCurrentTurn', game.currentTurn.id);
+                io.emit('roundWinner', {
+                    winnerName: game.roundWinner.name,
+                    winningCard: winningPlay.card
+                });
+        
+                game.discardPile.push(...game.pile);
+                io.emit('updateDiscardPile', game.discardPile);
+        
+                setTimeout(() => {
+                    io.emit('clearPiles');
+                    game.pile = [];
+                    game.currentTurn = game.roundWinner;
+                    io.emit('updateCurrentTurn', game.currentTurn.id);
+                }, 2000);
             }, 2000);
             
             return;

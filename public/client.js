@@ -192,8 +192,8 @@ socket.on('updateTrufSuit', (trufSuit) => {
 });
 
 socket.on('updatePlayerNamesAndBidValues', ({ playerNames, bidValues }) => {
-    const playerNameColumn = document.querySelector('.player-name-column');
-    const bidValueColumn = document.querySelector('.bid-value-column');
+    const playerNameColumn = document.querySelector('.player-col');
+    const bidValueColumn = document.querySelector('.bid-col');
 
     playerNameColumn.innerHTML = playerNames.join('<br>');
     bidValueColumn.innerHTML = bidValues.join('<br>');
@@ -208,7 +208,7 @@ socket.on('updateBidWinner', (bidWinner) => {
 });
 
 socket.on('updateBidValues', (updatedBidValues) => {
-    const bidValueColumn = document.querySelector('.bid-value-column');
+    const bidValueColumn = document.querySelector('.bid-col');
     bidValueColumn.innerHTML = updatedBidValues.join('<br>');
 });
 

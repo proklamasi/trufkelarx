@@ -31,18 +31,14 @@
         <div id="infoBox" class="info-box">
             <div class="truf-suit-row">Truf Suit: <span id="trufSuit"></span></div>
             <div class="game-mode-row">Game Mode: <span id="gameMode"></span></div>
-            <div class="score-row">
-                <div class="player-name-column">Player Name</div>
-                <div class="bid-value-column">Bid Value</div>
-                <div class="turn-score-column">Turn Score</div>
-            </div>
             <div class="bid-winner-row">Bid Winner: <span id="bidWinner"></span></div>
         </div>
-        <div class="scoreboard">
-            <div class="scoreboard-title">Scoreboard</div>
-            <div id="scores-container">
-                <!-- Scores will be dynamically inserted here -->
+        <div id="bidBox" class="bid-box">
+            <div class="bid-header">
+                <span class="player-col">Player</span>
+                <span class="bid-col">Bid</span>
             </div>
+            <div id="bidValues" class="bid-values"></div>
         </div>
         <div id="chooseGameModeButtons" style="display:none;">
             <button id="mainAtasButton">Main Atas</button>
