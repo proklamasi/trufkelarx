@@ -197,12 +197,8 @@ class TrufGame {
         const onlyTrufCardsLeft = player.hand.every(card => card.suit === this.trufSuit);
         console.log('Only trump cards left:', onlyTrufCardsLeft);
         
-        // Check if discard pile has been updated (not empty)
-        const isDiscardUpdated = this.discardPile.length > 0;
-        console.log('Discard pile updated:', isDiscardUpdated);
-        
         // Can play if any condition is true
-        return trufPlayed || onlyTrufCardsLeft || isDiscardUpdated;
+        return trufPlayed || onlyTrufCardsLeft;
     }
 
     isValidCardPlay(player, card) {

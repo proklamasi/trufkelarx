@@ -39,7 +39,6 @@ let currentTurn = null;
 let firstPlayedSuit = null; // Add this line to track first played suit
 let trufSuit = ''; // Add this line to store the trump suit
 let discardPile = []; // Add this line to store the discard pile
-let isDiscardUpdated = false; // check if discard pile has been updated
 let hasPlayedCard = false; // Track if player has played a card in current round
 
 
@@ -75,21 +74,14 @@ function updateHandClickability() {
 }
 
 function canPlayTrufSuit() {
-    // Check if any truf card has been played before
+    // Use global discardPile array to check for trump cards
     const trufPlayed = discardPile.some(card => card.card.suit === trufSuit);
     console.log('Trump played:', trufPlayed, 'Current truf suit:', trufSuit);
     
-    // Check if player only has truf cards left
+    // Use DOM to check player's hand
     const onlyTrufCardsLeft = Array.from(document.querySelectorAll('#playerHand .card'))
         .every(card => card.dataset.suit === trufSuit);
     console.log('Only truf cards left:', onlyTrufCardsLeft);
-
-    // Check if discard pile has been updated
-    console.log('Discard pile updated:', isDiscardUpdated);
-    
-    // Can play if any condition is true
-    const canPlay = trufPlayed || onlyTrufCardsLeft || isDiscardUpdated;
-    console.log('Can play trump:', canPlay);
     
     return canPlay;
 }
