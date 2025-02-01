@@ -40,6 +40,7 @@ let firstPlayedSuit = null; // Add this line to track first played suit
 let trufSuit = ''; // Add this line to store the trump suit
 let discardPile = []; // Add this line to store the discard pile
 let hasPlayedCard = false; // Track if player has played a card in current round
+let canPlayAnyCards = false; // Flag to allow playing any cards if player does not have lead suit
 
 
 
@@ -73,17 +74,28 @@ function updateHandClickability() {
     }
 }
 
+
 function canPlayTrufSuit() {
+    console.log('canPlayTrufSuit called'); // Log to verify function call
     // Use global discardPile array to check for trump cards
     const trufPlayed = discardPile.some(card => card.card.suit === trufSuit);
     console.log('Trump played:', trufPlayed, 'Current truf suit:', trufSuit);
+    console.log('Discard pile:', discardPile.map(card => card.card.suit));
     
     // Use DOM to check player's hand
     const onlyTrufCardsLeft = Array.from(document.querySelectorAll('#playerHand .card'))
         .every(card => card.dataset.suit === trufSuit);
+    console.log('Player hand:', playerHand.map(card => card.dataset.suit));
     console.log('Only truf cards left:', onlyTrufCardsLeft);
-    
-    return canPlay;
+
+    // Check if all cards in discardPile have the same suit and log the result
+    const allSameSuit = discardPile.every(card => card.card.suit === discardPile[0].card.suit);
+    console.log('All cards in discardPile have the same suit:', allSameSuit);
+
+    // Allow trufSuit as lead card if all cards in discardPile do not have the same suit
+    const canPlayTruf = !allSameSuit ? (console.log('canPlayTrufSuit returns true because not all cards in discardPile have the same suit'), true) : onlyTrufCardsLeft;
+    console.log('canPlayTrufSuit result:', canPlayTruf);
+    return canPlayTruf;
 }
 
 
@@ -329,7 +341,12 @@ function mustFollowSuit(card, hand) {
         return true;
     }
     // Check if player has any cards of the required suit
-    return !hand.some(c => c.suit === firstPlayedSuit);
+    const hasLeadSuit = hand.some(c => c.suit === firstPlayedSuit);
+    if (!hasLeadSuit) {
+        canPlayAnyCards = true; // Set the flag if the player does not have the lead suit
+        console.log(`canPlayAnyCards flag set to true because player does not have ${firstPlayedSuit}`);
+    }
+    return !hasLeadSuit;
 }
 
 function isCardPlayable(card, hand) {

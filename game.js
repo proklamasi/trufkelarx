@@ -187,6 +187,11 @@ class TrufGame {
     hasTrumpSuitBeenPlayed() {
         return this.discardPile.some(card => card.card.suit === this.trufSuit);
     }
+
+    // Method to check if discard pile has cards with different suits
+    hasDifferentSuits() {
+        return this.discardPile.some(card => card.card.suit !== this.discardPile[0].suit);
+    }
     
         canPlayTrufCard(player) {
         // Check if any truf card has been played before
@@ -197,8 +202,14 @@ class TrufGame {
         const onlyTrufCardsLeft = player.hand.every(card => card.suit === this.trufSuit);
         console.log('Only trump cards left:', onlyTrufCardsLeft);
         
+        // Check if all cards in discardPile have the same suit
+        const notSameSuit = this.hasDifferentSuits();
+        console.log('All cards in discardPile have not have the same suit:', notSameSuit);
+
         // Can play if any condition is true
-        return trufPlayed || onlyTrufCardsLeft;
+        const canPlayTruf = trufPlayed || onlyTrufCardsLeft || notSameSuit;
+        console.log('canPlayTrufCard result:', canPlayTruf);
+        return canPlayTruf;
     }
 
     isValidCardPlay(player, card) {
@@ -206,7 +217,9 @@ class TrufGame {
         // During playing1-phase, check truf suit restrictions for first player
         if (this.phase === 'playing1-phase' && this.pile.length === 0) {
             if (card.suit === this.trufSuit) {
-                return this.canPlayTrufCard(player);
+                const canPlay = this.canPlayTrufCard(player);
+                console.log('canPlayTrufCard result:', canPlay);
+                return canPlay;
             }
         }
         return true;
