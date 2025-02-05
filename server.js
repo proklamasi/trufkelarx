@@ -11,6 +11,21 @@ app.use(express.static('public'));
 
 const game = new TrufGame();
 
+const port = process.env.PORT || 3000;
+
+server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') {
+        console.log('Port 3000 is in use, trying 3001...');
+        server.listen(3001);
+    } else {
+        console.error(e);
+    }
+});
+
+server.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
+
 
 function calculateExpectedCards(game) {
     // First check if all players have bid
