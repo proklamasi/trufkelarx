@@ -5,6 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Truf Card Game</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .bidding-buttons {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: none;  /* Hidden by default */
+            gap: 5px;
+        }
+        
+        .bidding-buttons button {
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            min-width: 70px;
+            height: 25px;
+        }
+    </style>
 </head>
 <body>
     <h1>TRUF</h1>
@@ -26,6 +44,17 @@
             <div id="leftPile" class="pile"></div>
             <div id="topPile" class="pile"></div>
             <div id="rightPile" class="pile"></div>
+            
+            <!-- Extra piles -->
+            <div id="bottomExtraPile" class="pile pile-extra"></div>
+            <div id="rightExtraPile" class="pile pile-extra"></div>
+            <div id="topExtraPile" class="pile pile-extra"></div>
+            <div id="leftExtraPile" class="pile pile-extra"></div>
+        </div>
+        <div class="bidding-buttons" id="biddingButtons">
+            <button id="noTrumps">No Trumps</button>
+            <button id="doubleBids">Double Bids</button>
+            <button id="singleBid">Single Bid</button>
         </div>
         <div id="discardPile" class="discard-pile"></div>
         <div id="infoBox" class="info-box">

@@ -1,3 +1,14 @@
+:root {
+    --card-width: 100px;
+    --card-height: 140px;
+    --pile-width: 100px;
+    --pile-height: 140px;
+    --mobile-card-width: 69px;
+    --mobile-card-height: 94px;
+    --game-green: #00a000;
+    --game-dark-green: #1a6634;
+}
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -3156,6 +3167,403 @@ form button:active, button:active {
 
     #bottomPile { bottom: 20% !important; }
     #topPile { bottom: 80% !important; }
+}
+
+/* ...existing code... */
+
+/* Bidding buttons container */
+.bidding-buttons {
+    position: absolute;
+    bottom: calc(15% + 110px); /* Position above hand */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 4;
+}
+
+/* Bidding button styling */
+.bidding-buttons button {
+    padding: 8px 16px;
+    font-size: 14px;
+    color: white;
+    background: rgba(76, 175, 80, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.bidding-buttons button:hover {
+    background: rgba(76, 175, 80, 1);
+    transform: translateY(-2px);
+}
+
+.bidding-buttons button:active {
+    transform: translateY(0);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .bidding-buttons {
+        bottom: calc(15% + 90px); /* Adjust for mobile hand position */
+    }
+
+    .bidding-buttons button {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
+/* Small screen adjustments */
+@media (max-width: 480px) {
+    .bidding-buttons {
+        bottom: calc(12% + 80px);
+    }
+
+    .bidding-buttons button {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+}
+
+/* ...existing code... */
+
+/* Extra piles styling */
+.pile-extra {
+    position: absolute;
+    width: 50px;  /* Match regular pile width */
+    height: 70px; /* Match regular pile height */
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    z-index: 1;
+}
+
+/* Keep left and right extra piles unchanged */
+#leftExtraPile {
+    left: 100px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#rightExtraPile {
+    right: 100px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Modify bottom extra pile - place to right of bottom pile */
+#bottomExtraPile {
+    bottom: 160px;
+    left: calc(50% + 60px); /* Move 60px right from center */
+    transform: translateX(-50%);
+}
+
+/* Modify top extra pile - place to left of top pile */
+#topExtraPile {
+    top: 100px;
+    left: calc(50% - 60px); /* Move 60px left from center */
+    transform: translateX(-50%);
+}
+
+/* Mobile View Adjustments */
+@media (max-width: 768px) {
+    .pile, .pile-extra {
+        width: 50px !important;
+        height: 70px !important;
+        min-width: 35px !important;
+        min-height: 49px !important;
+    }
+
+    #bottomExtraPile { 
+        bottom: 12vh !important;
+        left: calc(50% + 45px) !important;
+    }
+
+    #topExtraPile { 
+        top: 12vh !important;
+        left: calc(50% - 45px) !important;
+    }
+}
+
+/* Very Small Screens */
+@media (max-width: 320px) {
+    .pile, .pile-extra {
+        width: 50px !important;
+        height: 70px !important;
+        min-width: 35px !important;
+        min-height: 49px !important;
+    }
+
+    #bottomExtraPile { 
+        bottom: 10vh !important;
+        left: calc(50% + 40px) !important;
+    }
+
+    #topExtraPile { 
+        top: 10vh !important;
+        left: calc(50% - 40px) !important;
+    }
+}
+
+/* ...existing code... */
+
+#board {
+    background-color: #00a000;
+    border: solid 3px #fff;
+    -webkit-border-radius: 30px;
+    -moz-border-radius: 30px;
+    border-radius: 30px;
+    color: #fff;
+    padding: 5px;
+    -webkit-box-shadow: #333 0 0 7px;
+    -moz-box-shadow: #333 0 0 7px;
+    box-shadow: #333 0 0 7px;
+    margin-bottom: 15px;
+    z-index: 1;
+}
+
+/* ...existing code... */
+
+#draper-left {
+    float: left;
+    width: 160px;
+    margin-right: 75px;
+}
+
+#draper-right {
+    float: left;
+    width: 160px;
+    margin-left: 75px;
+}
+
+/* ...existing code... */
+
+#socialGrid.gamelink div {
+    padding: 10px;
+}
+
+/* ...existing code... */
+
+/* ...existing code... */
+
+@media (max-width: 975px) {
+    #wrapper {
+        width: 716px;
+    }
+
+    .dev-ad, .draper-frame {
+        height: 110px;
+    }
+    
+    #gameRoom {
+        width: 100% !important;
+        max-width: none !important;
+    }
+}
+
+@media (max-width: 730px) {
+    #socialGrid {
+        -webkit-flex-direction: column;
+        -moz-flex-direction: column;
+        -ms-flex-direction: column;
+        flex-direction: column;
+    }
+
+    #promo-links div {
+        width: 100%;
+        max-width: none;
+        float: none;
+    }
+
+    #board {
+        width: 100%;
+        -webkit-border-radius: 0;
+        -moz-border-radius: 0;
+        border-radius: 0;
+    }
+    
+    #gameRoom {
+        border-radius: 0;
+        padding: 0;
+    }
+
+    .play-area {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 0;
+    }
+
+    .hand {
+        width: 90% !important;
+        max-width: 400px !important;
+    }
+
+    .pile {
+        transform: scale(0.8);
+    }
+
+    .info-box,
+    .bid-box {
+        position: fixed;
+        width: 120px;
+        font-size: 10px;
+    }
+}
+
+/* ...existing code... */
+
+/* Base pile styling */
+.pile, .pile-extra {
+    position: absolute;
+    width: var(--pile-width, 100px);
+    height: var(--pile-height, 140px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+/* Main pile positioning */
+#bottomPile { 
+    bottom: 160px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#leftPile { 
+    left: 220px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#topPile { 
+    top: 160px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#rightPile { 
+    right: 220px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Extra pile positioning */
+#bottomExtraPile {
+    bottom: 160px;
+    left: calc(50% + 110px);
+}
+
+#leftExtraPile {
+    left: 100px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#topExtraPile {
+    top: 160px;
+    left: calc(50% - 110px);
+}
+
+#rightExtraPile {
+    right: 100px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    :root {
+        --pile-width: 69px;
+        --pile-height: 94px;
+    }
+
+    .pile, .pile-extra {
+        min-width: 45px;
+        min-height: 63px;
+    }
+
+    /* Adjust main pile positions */
+    #bottomPile { 
+        bottom: 120px;
+        left: 50%;
+    }
+    
+    #leftPile { 
+        left: 80px;
+        top: 50%;
+    }
+    
+    #topPile { 
+        top: 120px;
+        left: 50%;
+    }
+    
+    #rightPile { 
+        right: 80px;
+        top: 50%;
+    }
+
+    /* Adjust extra pile positions */
+    #bottomExtraPile {
+        bottom: 120px;
+        left: calc(50% + 75px);
+    }
+
+    #leftExtraPile {
+        left: 80px;
+        top: calc(50% - 100px);
+    }
+
+    #topExtraPile {
+        top: 120px;
+        left: calc(50% - 75px);
+    }
+
+    #rightExtraPile {
+        right: 80px;
+        top: calc(50% - 100px);
+    }
+}
+
+/* Small screen adjustments */
+@media (max-width: 480px) {
+    :root {
+        --pile-width: 60px;
+        --pile-height: 84px;
+    }
+
+    .pile, .pile-extra {
+        min-width: 40px;
+        min-height: 56px;
+    }
+
+    /* Adjust spacing for smaller screens */
+    #bottomExtraPile { left: calc(50% + 65px); }
+    #topExtraPile { left: calc(50% - 65px); }
+    #leftExtraPile, #rightExtraPile { top: calc(50% - 80px); }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+    :root {
+        --pile-width: 55px;
+        --pile-height: 77px;
+    }
+
+    .pile, .pile-extra {
+        min-width: 35px;
+        min-height: 49px;
+    }
+
+    /* Further reduce spacing */
+    #bottomExtraPile { left: calc(50% + 60px); }
+    #topExtraPile { left: calc(50% - 60px); }
+    #leftExtraPile, #rightExtraPile { top: calc(50% - 70px); }
 }
 
 /* ...existing code... */

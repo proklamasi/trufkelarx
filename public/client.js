@@ -41,7 +41,12 @@ let trufSuit = ''; // Add this line to store the trump suit
 let discardPile = []; // Add this line to store the discard pile
 let hasPlayedCard = false; // Track if player has played a card in current round
 let canPlayAnyCards = false; // Flag to allow playing any cards if player does not have lead suit
-
+// Add state variables at the top
+let isBiddingDouble = false; // Track if current bid is double
+let cardsPlayedInBid = 0;   // Track number of cards played in current bid
+let hasBidSelected = false; // Track if player has selected a bid
+let firstCardPlayed = null; // Add at top with other state variables
+let currentCardCount = 0; 
 
 
 socket.on('updateCurrentTurn', (turnPlayerId) => {
@@ -51,6 +56,8 @@ socket.on('updateCurrentTurn', (turnPlayerId) => {
     socket.emit('requestHands');
 });
 
+
+// combinne updateHandClickability for bidding and playing1-phase
 function updateHandClickability() {
     const handElement = document.getElementById('playerHand');
     const cards = handElement.querySelectorAll('.card');
@@ -71,33 +78,96 @@ function updateHandClickability() {
                 card.classList.add('disabled');
             }
         });
+    } else if (gamePhase === 'bidding-phase') {
+        cards.forEach(card => {
+            let isClickable = hasBidSelected;
+
+            if (isBiddingDouble) {
+                if (currentCardCount === 0) {
+                    isClickable = true;
+                } else if (currentCardCount === 1 && firstCardPlayed) {
+                    const currentValue = parseInt(card.dataset.bidValue);
+                    isClickable = card.dataset.suit === firstCardPlayed.suit && 
+                                 (firstCardPlayed.bidValue + currentValue >= 7);
+                }
+            }
+            
+            card.classList.toggle('disabled', !isClickable);
+        });
     }
 }
 
+socket.on('updateCurrentTurn', (turnPlayerId) => {
+    currentTurn = turnPlayerId;
+    updateHandClickability();
+    socket.emit('requestHands');
+});
+
+// Modify bid button handlers
+document.getElementById('singleBid').addEventListener('click', function() {
+    hasBidSelected = true;
+    isBiddingDouble = false;
+    cardsPlayedInBid = 0;
+    updateHandClickability();
+    document.querySelector('.bidding-buttons').style.display = 'none';
+});
+
+document.getElementById('doubleBids').addEventListener('click', function() {
+    // Set bid state
+    hasBidSelected = true;
+    isBiddingDouble = true;
+    cardsPlayedInBid = 0;
+    firstCardPlayed = null; // Track first card
+
+    // Update UI
+    updateHandClickability();
+    document.querySelector('.bidding-buttons').style.display = 'none';
+
+    // Emit bid selection
+    socket.emit('placeBid', { type: 'doubleBids' });
+});
+
+document.getElementById('noTrumps').addEventListener('click', function() {
+    hasBidSelected = true;
+    isBiddingDouble = true;
+    cardsPlayedInBid = 0;
+    updateHandClickability();
+    document.querySelector('.bidding-buttons').style.display = 'none';
+});
+
 
 function canPlayTrufSuit() {
-    console.log('canPlayTrufSuit called'); // Log to verify function call
-    // Use global discardPile array to check for trump cards
+    console.log('canPlayTrufSuit called');
+
+    // Check if discardPile is empty (first round)
+    if (!discardPile || discardPile.length === 0) {
+        console.log('First round - only allow truf if no other cards');
+        return Array.from(document.querySelectorAll('#playerHand .card'))
+            .every(card => card.dataset.suit === trufSuit);
+    }
+
+    // Check for truf already played
     const trufPlayed = discardPile.some(card => card.card.suit === trufSuit);
-    console.log('Trump played:', trufPlayed, 'Current truf suit:', trufSuit);
-    console.log('Discard pile:', discardPile.map(card => card.card.suit));
-    
-    // Use DOM to check player's hand
+    console.log('Trump played:', trufPlayed, 'Current truf:', trufSuit);
+
+    // Check player's hand
     const onlyTrufCardsLeft = Array.from(document.querySelectorAll('#playerHand .card'))
         .every(card => card.dataset.suit === trufSuit);
-    console.log('Player hand:', playerHand.map(card => card.dataset.suit));
     console.log('Only truf cards left:', onlyTrufCardsLeft);
 
-    // Check if all cards in discardPile have the same suit and log the result
-    const allSameSuit = discardPile.every(card => card.card.suit === discardPile[0].card.suit);
-    console.log('All cards in discardPile have the same suit:', allSameSuit);
+    // Check last set for different suits
+    const lastFourCards = discardPile.slice(-Math.min(4, discardPile.length));
+    const hasDifferentSuit = lastFourCards.length >= 2 && 
+        lastFourCards.some(card => card.card.suit !== lastFourCards[0].card.suit);
+    console.log('Different suits check:', {
+        cardsChecked: lastFourCards.map(c => `${c.card.value} of ${c.card.suit}`),
+        hasDifferentSuit
+    });
 
-    // Allow trufSuit as lead card if all cards in discardPile do not have the same suit
-    const canPlayTruf = !allSameSuit ? (console.log('canPlayTrufSuit returns true because not all cards in discardPile have the same suit'), true) : onlyTrufCardsLeft;
-    console.log('canPlayTrufSuit result:', canPlayTruf);
+    const canPlayTruf = trufPlayed || onlyTrufCardsLeft || hasDifferentSuit;
+    console.log('Can play truf:', canPlayTruf);
     return canPlayTruf;
 }
-
 
 socket.on('gameStarted', (gameState) => {
     console.log('Game started', gameState);
@@ -110,6 +180,12 @@ socket.on('gameStarted', (gameState) => {
     displayGamePhase(gameState.phase);
     displayPlayArea(gameState.phase);
     displayPlayerHand(gameState.players); // Ensure this is called after updating the game room
+    
+    // Show bidding buttons if it's bidding phase
+    if (gameState.phase === 'bidding-phase') {
+        document.getElementById('biddingButtons').style.display = 'flex';
+        updateHandClickability(); // Set all hands unclickable during bidding phase
+    }
 });
 
 socket.on('gameUpdated', (gameState) => {
@@ -123,7 +199,7 @@ socket.on('gameUpdated', (gameState) => {
 });
 
 socket.on('cardPlayed', (data) => {
-    const pileElement = document.getElementById(data.pileId);
+    const pileElement = document.getElementById(data.pileIds);
     pileElement.innerHTML = ''; // Clear any existing card
     const pileCardElement = document.createElement('img');
     pileCardElement.className = 'card';
@@ -139,7 +215,7 @@ socket.on('cardPlayed', (data) => {
 });
 
 socket.on('cardFlipped', (data) => {
-    const pileElement = document.getElementById(data.pileId);
+    const pileElement = document.getElementById(data.pileIds);
     const pileCardElement = pileElement.querySelector('.card');
     if (data.faceUp) {
         pileCardElement.src = `images/${data.card.value}_of_${data.card.suit}.svg`; // Flip to face-up
@@ -160,24 +236,38 @@ socket.on('updateHands', (players) => {
 });
 
 socket.on('clearPiles', () => {
-    const pileIds = ['bottomPile', 'leftPile', 'topPile', 'rightPile'];
-    pileIds.forEach(pileId => {
-        const pileElement = document.getElementById(pileId);
+    const pileIds = ['bottomPile', 'leftPile', 'topPile', 'rightPile', 'bottomExtraPile', 'leftExtraPile', 'topExtraPile', 'rightExtraPile'];
+    pileIds.forEach(pileIds => {
+        const pileElement = document.getElementById(pileIds);
         pileElement.innerHTML = ''; // Clear the pile
     });
     hasPlayedCard = false; // Reset the flag when piles are cleared
 });
 
 socket.on('phaseChanged', (phase) => {
+    hasBidSelected = false; // Reset bid selection flag when phase changes
     displayGamePhase(phase);
     displayPlayArea(phase);
     if (phase === 'playing1-phase') {
         firstPlayedSuit = null; // Reset first played suit when phase changes
         updateHandClickability(); // Update clickability when phase changes
     }
+    
+    // Hide bidding buttons when not in bidding phase
+    if (phase !== 'bidding-phase') {
+        document.getElementById('biddingButtons').style.display = 'none';
+    }
+    
+    // Hide extra piles when not in bidding phase
+    if (phase !== 'bidding-phase') {
+        document.querySelectorAll('.pile-extra').forEach(pile => {
+            pile.style.display = 'none';
+        });
+    }
 });
 
 socket.on('updateDiscardPile', (newDiscardPile) => {
+    console.log('Discard pile updated:', discardPile.length);
     discardPile = newDiscardPile; // Store the complete discard pile data
     console.log('Updated discard pile:', discardPile);
     isDiscardUpdated = true;
@@ -233,15 +323,25 @@ socket.on('showChooseGameModeButtons', () => {
     }
 });
 
-document.getElementById('mainAtasButton').addEventListener('click', () => {
-    socket.emit('chooseGameMode', { gameMode: 'Main Atas' });
-    document.getElementById('chooseGameModeButtons').style.display = 'none';
-});
+    document.getElementById('mainAtasButton').addEventListener('click', () => {
+        socket.emit('chooseGameMode', { gameMode: 'Main Atas' });
+        document.getElementById('chooseGameModeButtons').style.display = 'none';
+    });
 
-document.getElementById('mainBawahButton').addEventListener('click', () => {
-    socket.emit('chooseGameMode', { gameMode: 'Main Bawah' });
-    document.getElementById('chooseGameModeButtons').style.display = 'none';
-});
+    document.getElementById('mainBawahButton').addEventListener('click', () => {
+        socket.emit('chooseGameMode', { gameMode: 'Main Bawah' });
+        document.getElementById('chooseGameModeButtons').style.display = 'none';
+    });
+
+    document.getElementById('mainAtasButton').addEventListener('click', () => {
+        socket.emit('chooseGameMode', { gameMode: 'Main Atas' });
+        document.getElementById('chooseGameModeButtons').style.display = 'none';
+    });
+
+    document.getElementById('mainBawahButton').addEventListener('click', () => {
+        socket.emit('chooseGameMode', { gameMode: 'Main Bawah' });
+        document.getElementById('chooseGameModeButtons').style.display = 'none';
+    });
 
 socket.on('joinGameError', (errorMessage) => {
     const errorDiv = document.createElement('div');
@@ -440,19 +540,65 @@ function playCard(cardElement, hand) {
     }
 
     const card = hand[cardIndex];
-    const pileId = 'bottomPile';
-    const pileElement = document.getElementById(pileId);
+
+    // Check if player can play more cards
+    if (!isBiddingDouble && cardsPlayedInBid >= 1) return;
+    if (isBiddingDouble && cardsPlayedInBid >= 2) return;
+
+    // For double bids, validate second card
+    if (isBiddingDouble && cardsPlayedInBid === 1) {
+        if (card.suit !== firstCardPlayed.suit || 
+            card.bidValue + firstCardPlayed.bidValue < 7) {
+            console.error('Invalid second card for double bid');
+            return;
+        }
+    }
+
+    // Track first card for double bids
+    if (isBiddingDouble && cardsPlayedInBid === 0) {
+        firstCardPlayed = {
+            suit: card.suit,
+            bidValue: card.bidValue
+        };
+    }
+
+    // Rest of your existing code...
+    let pileIds;
+    let isExtraPile = false;
+    
+    if (isBiddingDouble && cardsPlayedInBid === 1) {
+        pileIds = 'bottomExtraPile';
+        isExtraPile = true;
+    } else {
+        pileIds = 'bottomPile';
+    }
+
+    // ...existing pile element creation and card placement...
+    const pileElement = document.getElementById(pileIds);
+    if (pileElement.children.length > 0) return;
+    
     pileElement.innerHTML = '';
     const pileCardElement = document.createElement('img');
     pileCardElement.className = 'card';
-    pileCardElement.src = 'images/back.svg'; // Always face-down during bidding
+    pileCardElement.src = 'images/back.svg';
     pileCardElement.dataset.value = card.value;
     pileCardElement.dataset.suit = card.suit;
     pileCardElement.dataset.faceUp = 'false';
     pileElement.appendChild(pileCardElement);
+
     hand.splice(cardIndex, 1);
     displayPlayerHand([{ id: socket.id, hand }]);
-    socket.emit('playCard', { playerId: socket.id, pileId, card });
+
+    socket.emit('playCard', {
+        playerId: socket.id,
+        pileIds,
+        card,
+        isExtraPile,
+        isSecondCard: cardsPlayedInBid === 1
+    });
+
+    cardsPlayedInBid++;
+    updateHandClickability();
 }
 
 function playCardPlaying1(cardElement, hand) {
@@ -478,13 +624,13 @@ function playCardPlaying1(cardElement, hand) {
     // Only proceed if card is playable
     socket.emit('playCardPlaying1', { 
         playerId: socket.id, 
-        pileId: 'bottomPile', 
+        pileIds: 'bottomPile', 
         card 
     });
 }
 
 function flipCard(cardElement) {
-    const pileId = cardElement.parentElement.id;
+    const pileIds = cardElement.parentElement.id;
     const isFaceUp = cardElement.dataset.faceUp === 'true';
     const card = {
         value: cardElement.dataset.value,
@@ -493,11 +639,11 @@ function flipCard(cardElement) {
     if (isFaceUp) {
         cardElement.src = `images/back.svg`; // Flip to face-down
         cardElement.dataset.faceUp = 'false';
-        socket.emit('flipCard', { playerId: socket.id, pileId, card, faceUp: false }); // Emit the flipCard event to the server
+        socket.emit('flipCard', { playerId: socket.id, pileIds, card, faceUp: false }); // Emit the flipCard event to the server
     } else {
         cardElement.src = `images/${card.value}_of_${card.suit}.svg`; // Flip to face-up
         cardElement.dataset.faceUp = 'true';
-        socket.emit('flipCard', { playerId: socket.id, pileId, card, faceUp: true }); // Emit the flipCard event to the server
+        socket.emit('flipCard', { playerId: socket.id, pileIds, card, faceUp: true }); // Emit the flipCard event to the server
     }
 }
 
@@ -548,6 +694,59 @@ socket.on('gameState', (gameState) => {
 socket.on('playerJoined', (gameState) => {
     if (gameState.scoreboard) {
         updateScoreboard(gameState.scoreboard);
+    }
+});
+
+// Add click handlers for bidding buttons
+document.querySelectorAll('#biddingButtons button').forEach(button => {
+    button.addEventListener('click', () => {
+        const bidType = button.id;
+        socket.emit('placeBid', { type: bidType });
+        document.getElementById('biddingButtons').style.display = 'none';
+        
+        // Set bidding type flag
+        isBiddingDouble = (bidType === 'doubleBids' || bidType === 'noTrumps');
+        isDoubleBids = bidType === 'doubleBids';
+        isNoTrumps = bidType === 'noTrumps';
+        cardsPlayedInBid = 0; // Reset cards played counter
+        
+        // Show extra piles for double bids
+        if (isBiddingDouble) {
+            document.querySelectorAll('.pile-extra').forEach(pile => {
+                pile.style.display = 'block';
+            });
+            updateHandClickability(true); // Make hand clickable for double bids
+        }
+
+        // Make hand clickable if single bid
+        if (bidType === 'singleBid') {
+            updateHandClickability(true);
+        }
+    });
+});
+
+// Add new handler for returning bid cards
+socket.on('returnBidCards', (data) => {
+    // Clear all piles first
+    const allPileIds = ['bottomPile', 'leftPile', 'topPile', 'rightPile',
+                       'bottomExtraPile', 'leftExtraPile', 'topExtraPile', 'rightExtraPile'];
+    allPileIds.forEach(pileIds => {
+        const pileElement = document.getElementById(pileIds);
+        if (pileElement) pileElement.innerHTML = '';
+    });
+
+    // Reset bid counters
+    cardsPlayedInBid = 0;
+    isBiddingDouble = false;
+
+    // Hide extra piles
+    document.querySelectorAll('.pile-extra').forEach(pile => {
+        pile.style.display = 'none';
+    });
+
+    // Update player's hand with returned cards
+    if (data.hand) {
+        displayPlayerHand([{ id: socket.id, hand: data.hand }]);
     }
 });
 

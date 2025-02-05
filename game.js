@@ -142,6 +142,7 @@ class TrufGame {
             scoreboard: this.scoreboard
         };
     }
+    
 
     compareCards(cards) {
         // First card sets the leading suit
@@ -189,25 +190,44 @@ class TrufGame {
     }
 
     // Method to check if discard pile has cards with different suits
-    hasDifferentSuits() {
-        return this.discardPile.some(card => card.card.suit !== this.discardPile[0].suit);
-    }
-    
-        canPlayTrufCard(player) {
-        // Check if any truf card has been played before
-        const trufPlayed = this.hasTrumpSuitBeenPlayed();
-        console.log('Trump card played:', trufPlayed);
-        
-        // Check if player only has truf cards left
-        const onlyTrufCardsLeft = player.hand.every(card => card.suit === this.trufSuit);
-        console.log('Only trump cards left:', onlyTrufCardsLeft);
-        
-        // Check if all cards in discardPile have the same suit
-        const notSameSuit = this.hasDifferentSuits();
-        console.log('All cards in discardPile have not have the same suit:', notSameSuit);
+    //allSameSuit() {
+        //return this.discardPile.every(card => card.card.suit === this.discardPile[0].suit);
+    //}
 
-        // Can play if any condition is true
-        const canPlayTruf = trufPlayed || onlyTrufCardsLeft || notSameSuit;
+    // Check last 4 cards in discardPile for different suits
+    hasDifferentSuit() {
+        // Check if enough cards in discard pile
+        if (!this.discardPile || this.discardPile.length === 0) {
+            console.log('No cards in discard pile');
+            return false;
+        }
+    
+        // Get last 4 cards (or all if less than 4)
+        const lastFourCards = this.discardPile.slice(-Math.min(4, this.discardPile.length));
+        
+        // Need at least 2 cards to compare suits
+        if (lastFourCards.length < 2) {
+            console.log('Not enough cards to compare suits');
+            return false;
+        }
+    
+        return lastFourCards.some(card => card.card.suit !== lastFourCards[0].card.suit);
+    }
+
+    canPlayTrufCard(player) {
+        // First round - no truf allowed unless only has truf
+        if (this.discardPile.length === 0) {
+            const onlyTrufCardsLeft = player.hand.every(card => card.suit === this.trufSuit);
+            console.log('First round - only truf check:', onlyTrufCardsLeft);
+            return onlyTrufCardsLeft;
+        }
+    
+        // After first round - normal rules
+        const trufPlayed = this.hasTrumpSuitBeenPlayed();
+        const onlyTrufCardsLeft = player.hand.every(card => card.suit === this.trufSuit);
+        const hasDiffSuits = this.hasDifferentSuit();
+    
+        const canPlayTruf = trufPlayed || onlyTrufCardsLeft || hasDiffSuits;
         console.log('canPlayTrufCard result:', canPlayTruf);
         return canPlayTruf;
     }
@@ -225,6 +245,29 @@ class TrufGame {
         return true;
     }
 
+    validateDoubleBid(playerId, card) {
+        const playerCards = this.pile.filter(p => p.playerIndex === playerId);
+        
+        // If this is first card, no validation needed
+        if (playerCards.length === 0) return true;
+
+        // For second card:
+        const firstCard = playerCards[0].card;
+        
+        // 1. Check suit matches
+        if (firstCard.suit !== card.suit) {
+            return false;
+        }
+
+        // 2. Check combined bid value >= 7
+        const combinedBidValue = firstCard.bidValue + card.bidValue;
+        if (combinedBidValue < 7) {
+            return false;
+        }
+
+        return true;
+    }
+
     // Add method to handle trick wins
     recordTrickWin(playerName) {
         if (this.trickWins.hasOwnProperty(playerName)) {
@@ -235,8 +278,47 @@ class TrufGame {
     }
 
     // ...additional game logic methods...
+   calculateBidValues(pile) {
+    const playerBids = {};
+    let totalBidValue = 0;
 
-    // Remove determineTurnWinner and notifyCurrentPlayer methods
+    // Log initial pile state
+    console.log('Starting bid calculation with pile:', 
+        pile.map(p => `${p.card.suit} ${p.card.value} (${p.card.bidValue})`));
+
+    pile.forEach(play => {
+        if (!playerBids[play.playerIndex]) {
+            playerBids[play.playerIndex] = {
+                name: this.players[play.playerIndex].name,
+                cards: [],
+                bidType: this.players[play.playerIndex].bidType,
+                value: 0
+            };
+        }
+        playerBids[play.playerIndex].cards.push(play.card);
+        console.log(`Added card to ${this.players[play.playerIndex].name}: ${play.card.suit} ${play.card.value} (${play.card.bidValue})`);
+    });
+
+    Object.values(playerBids).forEach(player => {
+        const oldTotal = totalBidValue;
+        player.value = player.bidType === 'doubleBids' || player.bidType === 'noTrumps' ?
+            player.cards.reduce((sum, card) => sum + card.bidValue, 0) :
+            Math.max(...player.cards.map(c => c.bidValue));
+        totalBidValue += player.value;
+        console.log(`Player ${player.name}: type=${player.bidType}, value=${player.value}, running total=${totalBidValue}`);
+    });
+
+    console.log('Final total bid value:', totalBidValue);
+    const gameMode = totalBidValue === 13 ? 'Pas' : 
+                    totalBidValue < 13 ? 'Main Bawah' : 'Main Atas';
+    console.log('Final game mode:', gameMode);
+
+    return {
+        bids: Object.values(playerBids),
+        total: totalBidValue,
+        gameMode: gameMode
+    };
+}
 }
 
 module.exports = TrufGame;
