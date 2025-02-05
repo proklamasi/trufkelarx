@@ -9,7 +9,7 @@ const io = socketIo(server);
 
 app.use(express.static('public'));
 
-const game = new TrufGame();
+let game = new TrufGame();
 
 
 function calculateExpectedCards(game) {
@@ -409,9 +409,15 @@ socket.on('roundWinner', (data) => {
 });
 
 socket.on('disconnect', () => {
-    console.log('Client disconnected');
+    console.log('Client disconnected:', socket.id);
     game.removePlayer(socket.id);
     io.emit('gameUpdated', game.getGameState());
+    
+    // Reset game if no active players
+    if (!game.isActive()) {
+        game = new TrufGame();
+        console.log('Game reset - all players disconnected');
+    }
 });
 });
 

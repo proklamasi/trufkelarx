@@ -79,8 +79,18 @@ function updateHandClickability() {
             }
         });
     } else if (gamePhase === 'bidding-phase') {
+        // First disable all cards if no bid selected
+        if (!hasBidSelected || (biddingButtons && biddingButtons.style.display !== 'none')) {
+            cards.forEach(card => {
+                card.classList.add('disabled');
+                card.style.pointerEvents = 'none';
+            });
+            return;
+        }
+
+        // Enable cards only after bid selection
         cards.forEach(card => {
-            let isClickable = hasBidSelected;
+            let isClickable = true;
 
             if (isBiddingDouble) {
                 if (currentCardCount === 0) {
@@ -93,6 +103,7 @@ function updateHandClickability() {
             }
             
             card.classList.toggle('disabled', !isClickable);
+            card.style.pointerEvents = isClickable ? 'auto' : 'none';
         });
     }
 }

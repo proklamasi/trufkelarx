@@ -13,6 +13,7 @@ class TrufGame {
         this.scoreboard = {}; // Initialize scoreboard to track wins
         this.trickWins = {}; // Add trick wins tracking
     }
+    
 
     createDeck() {
         const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
@@ -319,6 +320,37 @@ class TrufGame {
         gameMode: gameMode
     };
 }
+
+reset() {
+    this.players = [];
+    this.deck = [];
+    this.phase = 'waiting';
+    this.pile = [];
+    this.discardPile = [];
+    this.bidWinner = null;
+    this.gameMode = null;
+    this.currentTurn = null;
+    this.trufSuit = null;
+    this.roundWinner = null;
+    this.scoreboard = {};
+    this.trickWins = {};
 }
+
+removePlayer(playerId) {
+    const index = this.players.findIndex(p => p.id === playerId);
+    if (index !== -1) {
+        this.players.splice(index, 1);
+        // Reset game if less than minimum players
+        if (this.players.length < 4) {
+            this.reset();
+        }
+    }
+}
+
+isActive() {
+    return this.players.length > 0;
+}
+}
+
 
 module.exports = TrufGame;
