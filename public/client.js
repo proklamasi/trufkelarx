@@ -49,6 +49,7 @@ let firstCardPlayed = null; // Add at top with other state variables
 let currentCardCount = 0; 
 
 
+
 socket.on('updateCurrentTurn', (turnPlayerId) => {
     currentTurn = turnPlayerId;
     updateHandClickability();

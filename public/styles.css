@@ -6,6 +6,19 @@
     --pile-height: 94px;
     --game-green: #00a000;
     --game-dark-green: #1a6634;
+    box-sizing: border-box;
+    --z-chairs: 1;
+    --z-piles: 2;
+    --z-cards: 3;
+    --z-hand: 4;
+    --z-ui: 5;
+    --z-overlay: 10;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
+    margin: 0;
+    padding: 0;
 }
 
 /* Mobile-first layout */
@@ -18,6 +31,7 @@ body {
     min-height: 100vh;
     width: 100%;
     overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 #gameRoom {
@@ -28,6 +42,7 @@ body {
     overflow: hidden;
     opacity: 0;
     animation: fadeIn 0.5s ease-out forwards;
+    box-sizing: border-box;
 }
 
 @keyframes fadeIn {
@@ -46,6 +61,8 @@ body {
     transform: translate(-50%, -50%);
     background: rgba(255, 255, 255, 0.05);
     border-radius: 8px;
+    box-sizing: border-box;
+    padding: 10px;
 }
 
 /* Mobile pile styling */
@@ -60,7 +77,8 @@ body {
     margin: 0;
     visibility: visible;
     pointer-events: auto;
-    z-index: 2;
+    z-index: var(--z-piles);
+    box-sizing: border-box;
 }
 
 /* Mobile pile positioning */
@@ -90,26 +108,26 @@ body {
 
 /* Extra piles positioned next to basic piles */
 #bottomExtraPile {
-    bottom: 15%;  /* Below bottom pile */
+    bottom: calc(25% - var(--pile-height) - 5px); /* Position below bottomPile */
     left: 50%;
     transform: translateX(-50%);
 }
 
 #leftExtraPile {
-    left: 15%;    /* Left of left pile */
+    left: calc(25% - var(--pile-width) - 5px); /* Position left of leftPile */
     top: 50%;
     transform: translateY(-50%);
 }
 
 #topExtraPile {
-    top: 15%;     /* Above top pile */
+    top: calc(25% - var(--pile-height) - 5px); /* Position above topPile */
     left: 50%;
     transform: translateX(-50%);
 }
 
 #rightExtraPile {
-    right: 15%;   /* Right of right pile */
-    top: 50%;
+    right: calc(25% - var(--pile-width) - 5px); /* Position to the right of rightPile */
+    top: 50%; /* Match rightPile's vertical position */
     transform: translateY(-50%);
 }
 
@@ -119,15 +137,17 @@ body {
     bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
-    width: 320px;
-    padding: 8px;
+    width: 95vmin; /* Match play-area width */
+    max-width: 400px; /* Match play-area max-width */
+    padding: 8px 20px; /* Add horizontal padding to prevent edge cards from touching borders */
     background: rgba(0, 0, 0, 0.2);
     border-radius: 15px;
-    z-index: 3;
+    z-index: var(--z-hand);
     display: flex;
     justify-content: center;
     align-items: flex-end;
     gap: 0;
+    box-sizing: border-box;
 }
 
 /* Mobile card styling */
@@ -135,7 +155,8 @@ body {
     width: var(--card-width);
     height: var(--card-height);
     position: relative;
-    margin-left: -45px;
+    margin-left: calc(-35px - (95vmin - 400px) / 26); /* Dynamic margin based on container width */
+    max-width: calc(var(--card-width) + (95vmin - 400px) / 13); /* Slightly increase max card width */
     background: white;
     border-radius: 4px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -144,38 +165,43 @@ body {
     touch-action: manipulation;
     cursor: pointer;
     transition: transform 0.3s ease, margin 0.3s ease;
+    box-sizing: border-box;
+    z-index: var(--z-cards);
+}
+
+/* First card in hand needs no negative margin */
+.hand .card:first-child {
+    margin-left: 0;
 }
 
 /* Simplified card hover/active states */
 .hand .card:hover,
 .hand .card:active {
     transform: translateY(-15px);
-    margin-left: -20px;
+    margin-left: calc(-15px - (95vmin - 400px) / 26);
     z-index: 100;
 }
 
 /* Mobile UI elements */
-.info-box, .bid-box {
-    position: fixed;
-    width: 150px;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-    z-index: 10;
-}
-
 .info-box {
+    position: absolute;
     top: 20px;
-    left: 20px;
+    right: 20px;
+    z-index: var(--z-ui);
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    padding: 10px;
 }
 
 .bid-box {
+    position: absolute;
     top: 20px;
-    right: 20px;
+    left: 20%;
+    transform: translateX(-50%);
+    z-index: var(--z-ui);
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    padding: 10px;
 }
 
 /* Info box content styling */
@@ -227,6 +253,7 @@ body {
     justify-content: center;
     font-size: 11px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: var(--z-chairs);
 }
 
 #bottomChair {
@@ -236,9 +263,9 @@ body {
 }
 
 #leftChair {
-    left: 5%;
-    top: 50%;
-    transform: translateY(-50%);
+    left: 2%;
+    top: 50%; /* Match topChair's position */
+    transform: translateY(0); /* Remove vertical centering */
 }
 
 #topChair {
@@ -248,9 +275,9 @@ body {
 }
 
 #rightChair {
-    right: 5%;
-    top: 50%;
-    transform: translateY(-50%);
+    right: 2%;
+    top: 50%; /* Match topChair's position */
+    transform: translateY(0); /* Remove vertical centering */
 }
 
 /* Mobile-specific interactions */
@@ -263,7 +290,8 @@ body {
 /* iPhone-specific adjustments */
 @media (max-width: 390px) {
     .hand {
-        width: 280px;
+        width: 95vmin;
+        padding: 5px;
     }
     
     .card {
@@ -274,7 +302,8 @@ body {
 /* Small phone adjustments */
 @media (max-width: 320px) {
     .hand {
-        width: 260px;
+        width: 95vmin;
+        padding: 4px;
     }
 
     .info-box, .bid-box {
@@ -390,6 +419,7 @@ body {
     z-index: 1000;
     border: 1px solid rgba(255, 255, 255, 0.1);
     width: 200px;
+    box-sizing: border-box;
 }
 
 /* Show bidding buttons when active class is added */
@@ -571,7 +601,6 @@ button:disabled {
     }
 }
 
-/* Small screen adjustments */
 @media (max-width: 360px) {
     #biddingButtons {
         bottom: 120px;
@@ -609,6 +638,7 @@ button:disabled {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     z-index: 1000;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    box-sizing: border-box;
 }
 
 /* Show game mode buttons when active */
@@ -693,26 +723,59 @@ button:disabled {
 @media (max-width: 480px) {
     #bottomPile { bottom: 30%; }
     #topPile { top: 30%; }
-    #leftPile { left: 30%; }
-    #rightPile { right: 30%; }
+    #leftPile { left: 25%; }
+    #rightPile { right: 25%; }
 
-    #bottomExtraPile { bottom: 20%; }
-    #topExtraPile { top: 20%; }
-    #leftExtraPile { left: 20%; }
-    #rightExtraPile { right: 20%; }
+    #bottomExtraPile { 
+        bottom: calc(30% - var(--pile-height) - 5px);
+        left: 50%;
+    }
+    #topExtraPile { 
+        top: calc(30% - var(--pile-height) - 5px);
+        left: 50%;
+    }
+    #leftExtraPile { 
+        left: calc(25% - var(--pile-width) - 5px);
+        top: 50%;
+    }
+    #rightExtraPile { 
+        right: calc(25% - var(--pile-width) - 5px);
+        top: 50%;
+    }
+
+    #bottomChair { bottom: calc(30% - var(--pile-height) * 0.7); }
+    #topChair { top: calc(30% - var(--pile-height) * 0.7); }
+    #leftChair { left: calc(25% - var(--pile-width) * 0.7); }
+    #rightChair { right: calc(25% - var(--pile-width) * 0.7); }
 }
 
-/* Small screen adjustments */
 @media (max-width: 360px) {
     #bottomPile { bottom: 35%; }
     #topPile { top: 35%; }
-    #leftPile { left: 35%; }
-    #rightPile { right: 35%; }
+    #leftPile { left: 30%; }
+    #rightPile { right: 30%; }
 
-    #bottomExtraPile { bottom: 25%; }
-    #topExtraPile { top: 25%; }
-    #leftExtraPile { left: 25%; }
-    #rightExtraPile { right: 25%; }
+    #bottomExtraPile { 
+        bottom: calc(35% - var(--pile-height) - 5px);
+        left: 50%;
+    }
+    #topExtraPile { 
+        top: calc(35% - var(--pile-height) - 5px);
+        left: 50%;
+    }
+    #leftExtraPile { 
+        left: calc(30% + var(--pile-width) + 5px);
+        top: 50%;
+    }
+    #rightExtraPile { 
+        right: calc(30% + var(--pile-width) + 5px);
+        top: 50%;
+    }
+
+    #bottomChair { bottom: calc(35% - var(--pile-height) * 0.7); }
+    #topChair { top: calc(35% - var(--pile-height) * 0.7); }
+    #leftChair { left: calc(30% - var(--pile-width) * 0.7); }
+    #rightChair { right: calc(30% - var(--pile-width) * 0.7); }
 }
 
 /* Enhanced first page styling */
@@ -1083,6 +1146,264 @@ h1 {
     white-space: nowrap;
     letter-spacing: 0.5px;
     */
+}
+
+/* ...existing code... */
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+    .hand {
+        padding: 6px 15px;
+    }
+    
+    .card {
+        margin-left: calc(-40px - (95vmin - 320px) / 26);
+    }
+    
+    .hand .card:hover,
+    .hand .card:active {
+        margin-left: calc(-20px - (95vmin - 320px) / 26);
+    }
+}
+
+@media (max-width: 360px) {
+    .hand {
+        padding: 4px 10px;
+    }
+    
+    .card {
+        margin-left: calc(-45px - (95vmin - 280px) / 26);
+    }
+    
+    .hand .card:hover,
+    .hand .card:active {
+        margin-left: calc(-25px - (95vmin - 280px) / 26);
+    }
+}
+
+/* ...existing code... */
+
+/* Discard pile styling */
+/* Hide discard pile */
+#discardPile {
+    display: none;
+}
+
+.discard-pile {
+    position: absolute;
+    width: var(--pile-width);
+    height: var(--pile-height);
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+}
+
+.discard-pile .card {
+    position: absolute;
+    width: var(--card-width);
+    height: var(--card-height);
+    margin: 0;
+    transition: transform 0.3s ease;
+    content: url('images/back.svg');
+    pointer-events: none;
+    box-sizing: border-box;
+}
+
+
+#discardPile .card[src*="of"] {
+    opacity: 1;
+}
+
+/* Stacking effect for discard pile cards */
+.discard-pile .card:nth-child(2) { transform: rotate(2deg); }
+.discard-pile .card:nth-child(3) { transform: rotate(-2deg); }
+.discard-pile .card:nth-child(4) { transform: rotate(4deg); }
+
+/* Mobile adjustments for discard pile */
+@media (max-width: 480px) {
+    .discard-pile {
+        width: var(--pile-width);
+        height: var(--pile-height);
+    }
+
+    .discard-pile .card {
+        width: var(--card-width);
+        height: var(--card-height);
+    }
+}
+
+@media (max-width: 360px) {
+    .discard-pile {
+        width: calc(var(--pile-width) * 0.9);
+        height: calc(var(--pile-height) * 0.9);
+    }
+
+    .discard-pile .card {
+        width: calc(var(--card-width) * 0.9);
+        height: calc(var(--card-height) * 0.9);
+    }
+}
+
+/* ...existing code... */
+
+/* Refined pile positioning - prevent overlap */
+#leftPile { 
+    left: 25%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#leftExtraPile {
+    left: calc(25% - var(--pile-width) - 5px); /* Position to the left of leftPile */
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#rightPile { 
+    right: 25%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#rightExtraPile {
+    right: calc(25% - var(--pile-width) - 5px); /* Position to the right of rightPile */
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Mobile adjustments for pile positioning */
+@media (max-width: 480px) {
+    #leftPile { left: 25%; }
+    #rightPile { right: 25%; }
+
+    #leftExtraPile { 
+        left: calc(25% - var(--pile-width) - 5px);
+        top: 50%;
+    }
+    #rightExtraPile { 
+        right: calc(25% - var(--pile-width) - 5px);
+        top: 50%;
+    }
+}
+
+@media (max-width: 360px) {
+    #leftPile { left: 30%; }
+    #rightPile { right: 30%; }
+
+    #leftExtraPile { 
+        left: calc(30% + var(--pile-width) + 5px);
+        top: 50%;
+    }
+    #rightExtraPile { 
+        right: calc(30% + var(--pile-width) + 5px);
+        top: 50%;
+    }
+}
+
+/* ...existing code... */
+
+/* Updated chair positioning */
+.chair {
+    /* ...existing chair properties... */
+}
+
+#leftChair {
+    left: 2%;
+    top: 50%; /* Match topChair's position */
+    transform: translateY(0); /* Remove vertical centering */
+}
+
+#rightChair {
+    right: 2%;
+    top: 50%; /* Match topChair's position */
+    transform: translateY(0); /* Remove vertical centering */
+}
+
+/* Mobile adjustments for chairs */
+@media (max-width: 480px) {
+    #leftChair { 
+        left: 1%;
+        top: 50%;
+    }
+    #rightChair { 
+        right: 1%;
+        top: 50%;
+    }
+}
+
+@media (max-width: 360px) {
+    #leftChair { 
+        left: 0.5%;
+        top: 50%; /* Match topChair's 3% for small screens */
+    }
+    #rightChair { 
+        right: 0.5%;
+        top: 50%; /* Match topChair's 3% for small screens */
+    }
+}
+
+/* ...existing code... */
+
+/* Update pile positioning for better alignment */
+#leftPile { 
+    left: 25%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#rightPile { 
+    right: 25%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Consistent extra pile positioning */
+#leftExtraPile {
+    left: calc(25% - var(--pile-width) - 5px);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#rightExtraPile {
+    right: calc(25% - var(--pile-width) - 5px);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+    #leftPile { left: 25%; }
+    #rightPile { right: 25%; }
+
+    #leftExtraPile { 
+        left: calc(25% - var(--pile-width) - 5px);
+        top: 50%;
+    }
+    #rightExtraPile { 
+        right: calc(25% - var(--pile-width) - 5px);
+        top: 50%;
+    }
+}
+
+@media (max-width: 360px) {
+    #leftPile { left: 30%; }
+    #rightPile { right: 30%; }
+
+    #leftExtraPile { 
+        left: calc(30% + var(--pile-width) + 5px);
+        top: 50%;
+    }
+    #rightExtraPile { 
+        right: calc(30% + var(--pile-width) + 5px);
+        top: 50%;
+    }
 }
 
 /* ...existing code... */
