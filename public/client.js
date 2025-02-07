@@ -1,7 +1,4 @@
-const socket = io('https://abdulqodir.com', {
-    secure: true,
-    rejectUnauthorized: false // Only if using self-signed certificates
-  });
+const socket = io();
 
 socket.on('connect', () => {
     console.log('Connected to server');
