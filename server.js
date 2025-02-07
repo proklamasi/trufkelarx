@@ -1,11 +1,21 @@
 const express = require('express');
-const http = require('http');
+const http = require('https');
+const fs = require('fs');
 const socketIo = require('socket.io');
 const TrufGame = require('./game');
-
+const path = require('path');
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
+
+// SSL configuration
+const sslOptions = {
+    key: fs.readFileSync('/path/to/your/privkey.pem'),
+    cert: fs.readFileSync('/path/to/your/fullchain.pem')
+  };
+  
+  // Create HTTPS server
+  const server = https.createServer(sslOptions, app);
+  const io = require('socket.io')(server);
+
 
 app.use(express.static('public'));
 
@@ -421,8 +431,8 @@ socket.on('disconnect', () => {
 });
 });
 
-const PORT = process.env.PORT || 3000;
-
+// Change port to 443 (standard HTTPS port)
+const PORT = process.env.PORT || 443;
 server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on https://abdulqodir.com:${PORT}`);
 });

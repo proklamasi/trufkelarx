@@ -385,6 +385,25 @@ socket.on('roundWinner', (data) => {
     messageDiv.textContent = `${data.winnerName} wins the round with ${data.winningCard.value} of ${data.winningCard.suit}!`;
     document.getElementById('gameRoom').appendChild(messageDiv);
 
+    // Update trick wins in scoreboard
+    const trickWinsContainer = document.querySelector('.trick-wins .score-items');
+    let currentScore = 0;
+    const existingScoreItem = trickWinsContainer.querySelector(`[data-player="${data.winnerName}"]`);
+    
+    if (existingScoreItem) {
+        currentScore = parseInt(existingScoreItem.querySelector('.player-wins').textContent);
+        existingScoreItem.querySelector('.player-wins').textContent = currentScore + 1;
+    } else {
+        const newScoreItem = document.createElement('div');
+        newScoreItem.className = 'score-item';
+        newScoreItem.dataset.player = data.winnerName;
+        newScoreItem.innerHTML = `
+            <span class="player-name">${data.winnerName}</span>
+            <span class="player-wins">1</span>
+        `;
+        trickWinsContainer.appendChild(newScoreItem);
+    }
+
     // Remove message after a delay
     setTimeout(() => {
         messageDiv.remove();
@@ -659,35 +678,6 @@ function flipCard(cardElement) {
     }
 }
 
-// ...existing code...
-
-// Update scoreboard display function
-function updateScoreboard(scoreData) {
-    const scoresContainer = document.getElementById('scores-container');
-    if (!scoresContainer) return;
-    
-    scoresContainer.innerHTML = `
-        <div class="trick-wins">
-            <div class="section-title">Current Tricks</div>
-            ${generateScoreItems(scoreData.trickWins)}
-        </div>
-        <div class="total-wins">
-            <div class="section-title">Total Games Won</div>
-            ${generateScoreItems(scoreData.scoreboard)}
-        </div>
-    `;
-}
-
-function generateScoreItems(scores) {
-    return Object.entries(scores)
-        .sort(([,a], [,b]) => b - a)
-        .map(([playerName, wins]) => `
-            <div class="score-item">
-                <span class="player-name">${playerName}</span>
-                <span class="player-wins">${wins}</span>
-            </div>
-        `).join('');
-}
 
 // Update socket listener for scoreboard updates
 socket.on('updateScoreboard', (scoreData) => {
