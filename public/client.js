@@ -384,12 +384,27 @@ socket.on('roundWinner', (data) => {
     messageDiv.className = 'winner-message';
     messageDiv.textContent = `${data.winnerName} wins the round with ${data.winningCard.value} of ${data.winningCard.suit}!`;
     document.getElementById('gameRoom').appendChild(messageDiv);
-
+    
     // Remove message after a delay
     setTimeout(() => {
         messageDiv.remove();
     }, 2000);
 });
+
+socket.on('updateTrickWins', (data) => {
+    const bidValues = document.getElementById('bidValues');
+    if (!bidValues) return;
+
+    // Get the trick wins column
+    const trickWinsColumn = document.querySelector('.trick-wins');
+    if (!trickWinsColumn) return;
+
+    // Create an array of wins and join them with line breaks
+    const winsArray = Object.values(data.trickWins);
+    trickWinsColumn.innerHTML = winsArray.join('<br>');
+    console.log('Updated trick wins:', winsArray); // Debug log
+});
+
 
 // Add listener for invalid play messages
 socket.on('invalidPlay', (message) => {
@@ -436,9 +451,6 @@ function displayDeck(deck) {
     const deckElement = document.getElementById('deck');
     deckElement.innerHTML = ''; // Clear any existing cards
     console.log('Displaying deck:', deck); // Debugging log
-    if (deck.length === 0) {
-        console.error('Deck is empty'); // Debugging log
-    }
     deck.forEach(card => {
         const cardElement = document.createElement('img');
         cardElement.className = 'card';
@@ -657,36 +669,6 @@ function flipCard(cardElement) {
         cardElement.dataset.faceUp = 'true';
         socket.emit('flipCard', { playerId: socket.id, pileIds, card, faceUp: true }); // Emit the flipCard event to the server
     }
-}
-
-// ...existing code...
-
-// Update scoreboard display function
-function updateScoreboard(scoreData) {
-    const scoresContainer = document.getElementById('scores-container');
-    if (!scoresContainer) return;
-    
-    scoresContainer.innerHTML = `
-        <div class="trick-wins">
-            <div class="section-title">Current Tricks</div>
-            ${generateScoreItems(scoreData.trickWins)}
-        </div>
-        <div class="total-wins">
-            <div class="section-title">Total Games Won</div>
-            ${generateScoreItems(scoreData.scoreboard)}
-        </div>
-    `;
-}
-
-function generateScoreItems(scores) {
-    return Object.entries(scores)
-        .sort(([,a], [,b]) => b - a)
-        .map(([playerName, wins]) => `
-            <div class="score-item">
-                <span class="player-name">${playerName}</span>
-                <span class="player-wins">${wins}</span>
-            </div>
-        `).join('');
 }
 
 // Update socket listener for scoreboard updates

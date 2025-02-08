@@ -9,7 +9,7 @@ const io = socketIo(server);
 
 app.use(express.static('public'));
 
-const game = new TrufGame();
+let game = new TrufGame();
 
 
 function calculateExpectedCards(game) {
@@ -193,6 +193,7 @@ socket.on('playCard', (data) => {
                     io.emit('updateGameMode', bidResult.gameMode);
                     console.log('Game mode:', bidResult.gameMode);
 
+
                     // Find highest bid
                     const highestBidRankCard = game.pile.reduce((highest, current) => {
                         return current.card.bidRank > highest.card.bidRank ? current : highest;
@@ -356,6 +357,10 @@ socket.on('playCardPlaying1', (data) => {
                 winnerName: game.roundWinner.name,
                 winningCard: winningPlay.card
             });
+
+            // Record and emit trick win
+            const result = game.recordTrickWin(game.roundWinner.name);
+            io.emit('updateTrickWins', result);
 
             game.discardPile.push(...game.pile);
             io.emit('updateDiscardPile', game.discardPile);

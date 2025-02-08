@@ -241,6 +241,15 @@ body {
     font-size: 13px;
 }
 
+.trick-wins > div {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 13px;
+}
+
+
+
 /* Mobile chairs */
 .chair {
     width: 40px;

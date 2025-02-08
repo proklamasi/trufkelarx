@@ -269,14 +269,27 @@ class TrufGame {
         return true;
     }
 
-    // Add method to handle trick wins
-    recordTrickWin(playerName) {
-        if (this.trickWins.hasOwnProperty(playerName)) {
-            this.trickWins[playerName]++;
-            // Update game state to trigger client update
-            return this.getGameState();
+    recordTrickWin(winnerName) {
+        if (!winnerName) {
+            console.error('No winner name provided to recordTrickWin');
+            return null;
         }
+
+        // Initialize if first win
+        if (!this.trickWins[winnerName]) {
+            this.trickWins[winnerName] = 0;
+        }
+
+        // Increment wins
+        this.trickWins[winnerName]++;
+
+        console.log(`Updated trick wins for ${winnerName}:`, this.trickWins[winnerName]);
+
+        return {
+            trickWins: this.trickWins,
+            winnerName: winnerName
     }
+}
 
     // ...additional game logic methods...
    calculateBidValues(pile) {
