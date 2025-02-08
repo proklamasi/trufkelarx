@@ -1415,4 +1415,9 @@ h1 {
     }
 }
 
+/* Option 1: Using display: none */
+#noTrumps {
+    display: none;
+}
+
 /* ...existing code... */

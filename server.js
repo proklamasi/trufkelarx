@@ -305,7 +305,7 @@ socket.on('playCardPlaying1', (data) => {
 
     // Validate card play before modifying any state
     if (!game.isValidCardPlay(player, data.card)) {
-        socket.emit('invalidPlay', 'Cannot play truf suit card yet');
+        socket.emit('invalidPlay', 'Belum bisa memainkan kartu truf!');
         return;
     }
 

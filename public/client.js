@@ -382,7 +382,7 @@ socket.on('roundWinner', (data) => {
     // Create temporary message element
     const messageDiv = document.createElement('div');
     messageDiv.className = 'winner-message';
-    messageDiv.textContent = `${data.winnerName} wins the round with ${data.winningCard.value} of ${data.winningCard.suit}!`;
+    messageDiv.textContent = `kartu tertinggi: ${data.winningCard.value} ${data.winningCard.suit}!, milik ${data.winnerName}`;
     document.getElementById('gameRoom').appendChild(messageDiv);
     
     // Remove message after a delay
@@ -639,7 +639,7 @@ function playCardPlaying1(cardElement, hand) {
     if (!isCardPlayable(card, hand)) {
         const messageDiv = document.createElement('div');
         messageDiv.className = 'error-message';
-        messageDiv.textContent = 'Cannot play truf suit card yet';
+        messageDiv.textContent = 'Belum bisa memainkan kartu truf!';
         document.getElementById('gameRoom').appendChild(messageDiv);
         setTimeout(() => messageDiv.remove(), 2000);
         return;
