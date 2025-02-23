@@ -12,8 +12,7 @@ class TrufGame {
         this.roundWinner = null; // Add round winner property
         this.scoreboard = {}; // Initialize scoreboard to track wins
         this.trickWins = {}; // Add trick wins tracking
-    }
-    
+    }    
 
     createDeck() {
         const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
@@ -86,19 +85,14 @@ class TrufGame {
             return;
         }
         this.deck = this.createDeck(); // Ensure the deck is created
-        console.log('Deck created:', this.deck); // Debugging log
         this.shuffleDeck(this.deck); // Shuffle the deck
-        console.log('Deck shuffled:', this.deck); // Debugging log
         // Deal 13 cards to each player
         const cardsPerPlayer = 13;
         this.players.forEach(player => {
             player.hand = this.deck.splice(0, cardsPerPlayer);
             this.trickWins[player.name] = 0;
         });
-        console.log('Players after dealing cards:', this.players); // Debugging log
-        console.log('Remaining deck:', this.deck); // Debugging log
         this.phase = 'bidding-phase'; // Set the game phase to "bidding-phase"
-        console.log('Game phase:', this.phase); // Debugging log
     }
 
     resetGame() {

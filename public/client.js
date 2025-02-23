@@ -1,39 +1,5 @@
 const socket = io();
 
-socket.on('connect', () => {
-    console.log('Connected to server');
-    console.log('Socket ID:', socket.id); // Debugging log
-});
-
-socket.on('disconnect', () => {
-    console.log('Disconnected from server');
-});
-
-document.getElementById('joinGameForm').addEventListener('submit', (event) => {
-    event.preventDefault();
-    const username = document.getElementById('username').value;
-    socket.emit('joinGame', username);
-    // Remove this line since we'll hide the form only after successful join
-    // document.getElementById('joinGameForm').style.display = 'none';
-    // document.getElementById('startGameButton').style.display = 'block';
-});
-
-// Add new socket event for successful join
-socket.on('joinGameSuccess', () => {
-    document.getElementById('joinGameForm').style.display = 'none';
-    document.getElementById('startGameButton').style.display = 'block';
-});
-
-document.getElementById('startGameButton').addEventListener('click', () => {
-    socket.emit('startGame');
-    document.getElementById('startGameButton').style.display = 'none';
-    document.getElementById('gameRoom').style.display = 'block';
-});
-
-//document.getElementById('resetGameButton').addEventListener('click', () => {
-    //socket.emit('resetGame');
-//});
-
 let gamePhase = ''; // Store the current game phase
 let currentTurn = null;
 let firstPlayedSuit = null; // Add this line to track first played suit
@@ -41,14 +7,158 @@ let trufSuit = ''; // Add this line to store the trump suit
 let discardPile = []; // Add this line to store the discard pile
 let hasPlayedCard = false; // Track if player has played a card in current round
 let canPlayAnyCards = false; // Flag to allow playing any cards if player does not have lead suit
-// Add state variables at the top
+let isGameStarted = false; // Flag to track if the game has started
 let isBiddingDouble = false; // Track if current bid is double
 let cardsPlayedInBid = 0;   // Track number of cards played in current bid
 let hasBidSelected = false; // Track if player has selected a bid
 let firstCardPlayed = null; // Add at top with other state variables
 let currentCardCount = 0; 
+let chatName = ''; // Add this line to store the chat name
+
+socket.on('connect', () => {
+    console.log('Connected to server');
+    console.log('Socket ID:', socket.id); // Debugging log
+
+    // Automatically join the lobby upon connection
+    socket.emit('joinLobby');
+});
+
+socket.on('lobbyJoined', (player) => {
+    console.log(`You have joined the lobby as ${player.name}`);
+    document.getElementById('joinGameForm').classList.remove('active');
+    document.getElementById('lobby').style.display = 'block';
+});
+
+socket.on('lobbyUpdated', (players) => {
+    const lobbyElement = document.getElementById('lobbyPlayers');
+    lobbyElement.innerHTML = ''; // Clear existing players
+    players.forEach(player => {
+        const playerElement = document.createElement('div');
+        playerElement.textContent = player.name;
+        lobbyElement.appendChild(playerElement);
+    });
+});
+
+socket.on('disconnect', () => {
+    console.log('Disconnected from server');
+});
 
 
+// Handle chat name form submission
+document.getElementById('chatNameForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    chatName = document.getElementById('chatName').value;
+    document.getElementById('chatNameForm').style.display = 'none';
+    document.getElementById('chatForm').style.display = 'flex';
+});
+
+// Chat functionality
+document.getElementById('chatForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const message = document.getElementById('chatInput').value;
+    socket.emit('chatMessage', { chatName, message });
+    document.getElementById('chatInput').value = '';
+});
+
+socket.on('chatMessage', (data) => {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageElement = document.createElement('div');
+    messageElement.className = 'chat-message';
+    messageElement.innerHTML = `<strong>${data.chatName}:</strong> ${data.message}`;
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom
+});
+
+
+document.getElementById('joinGameForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    socket.emit('joinGame', username);
+});
+
+document.getElementById('startButton').addEventListener('click', () => {
+    document.getElementById('joinGameForm').classList.add('active');
+    document.getElementById('joinGameForm').style.display = 'flex'; // Ensure the form is displayed
+    document.getElementById('lobby').style.display = 'none';
+});
+
+socket.on('joinGameError', (errorMessage) => {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = errorMessage;
+
+    // Remove any existing error message
+    const existingError = document.querySelector('.error-message');
+    if (existingError) {
+        existingError.remove();
+    }
+
+    // Show the error above the form
+    const form = document.getElementById('joinGameForm');
+    form.insertBefore(errorDiv, form.firstChild);
+
+    // Show the form again
+    form.style.display = 'flex';
+
+    // Clear the username input
+    document.getElementById('username').value = '';
+});
+
+// Add new socket event for successful join
+socket.on('joinGameSuccess', (data) => {
+    document.getElementById('joinGameForm').style.display = 'none';
+
+    // Check if there are 4 players
+    if (data.players && data.players.length === 4) {
+    // Game will start automatically when 4 players have joined
+    socket.emit('startGame'); // Emit the 'startGame' event to the server
+    }
+});
+
+socket.on('gameStarted', (gameState) => {
+    console.log('Game started', gameState);
+    document.getElementById('lobby').style.display = 'none';
+    document.getElementById('gameRoom').classList.add('active');
+    if (gameState.players.length === 4) {
+        updateGameRoom(gameState.players);
+        displayDeck(gameState.deck);
+        displayGamePhase(gameState.phase);
+        displayPlayArea(gameState.phase);
+        displayPlayerHand(gameState.players); // Ensure this is called after updating the game room
+        isGameStarted = true; // Set the flag to indicate the game has started
+
+        // Show bidding buttons if it's bidding phase
+        if (gameState.phase === 'bidding-phase') {
+            document.getElementById('biddingButtons').style.display = 'flex';
+            updateHandClickability(); // Set all hands unclickable during bidding phase
+        }
+    } else {
+        console.warn('Not enough players to start the game');
+    }
+});
+
+socket.on('gameUpdated', (gameState) => {
+    if (gameState.players.length === 4) {
+        console.log('game state is updated');
+        updateGameRoom(gameState.players);
+        displayDeck(gameState.deck);
+        displayGamePhase(gameState.phase);
+        displayPlayArea(gameState.phase);
+        displayPlayerHand(gameState.players); // Ensure this is called after updating the game room
+        if (!isGameStarted) {
+            displayPlayerHand(gameState.players); // Ensure this is called after updating the game room
+        }
+    } else {
+        const playersNeeded = 4 - gameState.players.length; // Calculate players needed
+        let message = `Waiting for ${playersNeeded} more player${playersNeeded > 1 ? 's' : ''}`; // Correct grammar
+        console.log(message); // or console.warn if you want it as a warning
+        // You can also display this message in the UI:
+        const waitingMessageElement = document.getElementById('waitingMessage'); // Get the element where you want to display the message
+        if (waitingMessageElement) {
+            waitingMessageElement.textContent = message; // Set the text content
+        }
+    }  
+});
 
 socket.on('updateCurrentTurn', (turnPlayerId) => {
     currentTurn = turnPlayerId;
@@ -181,46 +291,22 @@ function canPlayTrufSuit() {
     return canPlayTruf;
 }
 
-socket.on('gameStarted', (gameState) => {
-    console.log('Game started', gameState);
-    document.getElementById('startGameButton').style.display = 'none';
-    document.getElementById('gameRoom').style.display = 'block';
-    if (gameState.players.length === 4) {
-        updateGameRoom(gameState.players);
-    }
-    displayDeck(gameState.deck);
-    displayGamePhase(gameState.phase);
-    displayPlayArea(gameState.phase);
-    displayPlayerHand(gameState.players); // Ensure this is called after updating the game room
-    
-    // Show bidding buttons if it's bidding phase
-    if (gameState.phase === 'bidding-phase') {
-        document.getElementById('biddingButtons').style.display = 'flex';
-        updateHandClickability(); // Set all hands unclickable during bidding phase
-    }
-});
-
-socket.on('gameUpdated', (gameState) => {
-    if (gameState.players.length === 4) {
-        updateGameRoom(gameState.players);
-    }
-    displayDeck(gameState.deck);
-    displayGamePhase(gameState.phase);
-    displayPlayArea(gameState.phase);
-    displayPlayerHand(gameState.players); // Ensure this is called after updating the game room
-});
-
 socket.on('cardPlayed', (data) => {
     const pileElement = document.getElementById(data.pileIds);
+    if (!pileElement) return;
+
     pileElement.innerHTML = ''; // Clear any existing card
     const pileCardElement = document.createElement('img');
     pileCardElement.className = 'card';
-    pileCardElement.src = data.faceUp ? `images/${data.card.value}_of_${data.card.suit}.svg` : `images/back.svg`; // Face-up or face-down
+    pileCardElement.src = data.faceUp ? 
+        `images/${data.card.value}_of_${data.card.suit}.svg` : 
+        `images/back.svg`; // Face-up or face-down
     pileCardElement.dataset.value = data.card.value;
     pileCardElement.dataset.suit = data.card.suit;
     pileCardElement.dataset.faceUp = data.faceUp ? 'true' : 'false';
     pileElement.appendChild(pileCardElement);
 
+    // Set first played suit when first card is played in playing1-phase
     if (gamePhase === 'playing1-phase' && document.querySelectorAll('.pile .card').length === 1) {
         firstPlayedSuit = data.card.suit; // Set first played suit when first card is played
     }
@@ -239,11 +325,8 @@ socket.on('cardFlipped', (data) => {
 });
 
 socket.on('updateHands', (players) => {
-    players.forEach(player => {
-        if (player.id === socket.id) {
-            displayPlayerHand([player]);
-        }
-    });
+    console.log(players.length);
+    displayPlayerHand(players); // Ensure this is called with the full list of players
     updateHandClickability(); // Update hand clickability when hands are updated
 });
 
@@ -354,29 +437,6 @@ socket.on('showChooseGameModeButtons', () => {
         socket.emit('chooseGameMode', { gameMode: 'Main Bawah' });
         document.getElementById('chooseGameModeButtons').style.display = 'none';
     });
-
-socket.on('joinGameError', (errorMessage) => {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-message';
-    errorDiv.textContent = errorMessage;
-    
-    // Remove any existing error message
-    const existingError = document.querySelector('.error-message');
-    if (existingError) {
-        existingError.remove();
-    }
-    
-    // Show the error above the form
-    const form = document.getElementById('joinGameForm');
-    form.insertBefore(errorDiv, form.firstChild);
-    
-    // Show the form again
-    form.style.display = 'flex';
-    document.getElementById('startGameButton').style.display = 'none';
-    
-    // Clear the username input
-    document.getElementById('username').value = '';
-});
 
 socket.on('roundWinner', (data) => {
     // Create temporary message element
@@ -610,9 +670,10 @@ function playCard(cardElement, hand) {
     pileCardElement.dataset.faceUp = 'false';
     pileElement.appendChild(pileCardElement);
 
-    hand.splice(cardIndex, 1);
-    displayPlayerHand([{ id: socket.id, hand }]);
+    hand.splice(cardIndex, 1); // play bidding card
+    displayPlayerHand([{ id: socket.id, hand }]); // update a bidding hand
 
+    
     socket.emit('playCard', {
         playerId: socket.id,
         pileIds,
@@ -744,4 +805,12 @@ socket.on('returnBidCards', (data) => {
     }
 });
 
-// ...additional client-side code...
+
+// Listen for an event that indicates the end of the round or game
+socket.on('endOfRound', ({ bidValues, winValues, gameMode, resultValues }) => {
+    const resultValueColumn = document.querySelector('.final-result');
+    // Display the calculated final results
+    resultValueColumn.innerHTML = resultValues.join('<br>');
+    console.log(resultValueColumn);
+});
+// ...additional client-side code.

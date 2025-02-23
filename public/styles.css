@@ -1420,4 +1420,205 @@ h1 {
     display: none;
 }
 
+/* Lobby styling */
+#lobby {
+    background-color: #006400; /* Dark green background */
+    color: white; /* White text color */
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    display: none; /* Hide by default */
+}
+
+#lobby h2 {
+    margin-bottom: 20px;
+}
+
+#lobbyPlayers {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#lobbyPlayers div {
+    background-color: #228B22; /* Forest green background for player names */
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    width: 80%;
+    text-align: center;
+}
+
+/* Hide game room by default */
+#gameRoom {
+    display: none;
+}
+
+/* Show game room when active */
+#gameRoom.active {
+    display: block;
+}
+
+/* Hide join game form by default */
+#joinGameForm {
+    display: none;
+}
+
+/* Show join game form when active */
+#joinGameForm.active {
+    display: block;
+}
+
+/* Lobby styling */
+#lobby {
+    background: linear-gradient(135deg, #2E8B57, #006400); /* Gradient background */
+    color: white; /* White text color */
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    display: none; /* Hide by default */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Add shadow */
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+#lobby h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#lobbyPlayers {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#lobbyPlayers div {
+    background-color: #3CB371; /* Medium sea green background for player names */
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 10px;
+    width: 80%;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add shadow */
+    transition: transform 0.3s ease;
+}
+
+#lobbyPlayers div:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Add hover effect */
+}
+
+#startButton {
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    background-color: #FF9800; /* Orange background */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Add shadow */
+}
+
+#startButton:hover {
+    background-color: #FB8C00; /* Darker orange on hover */
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); /* Add hover effect */
+}
+
+#startButton:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Add active effect */
+}
+
+/* Chat room styling */
+#chatRoom {
+    background: linear-gradient(135deg, #3CB371, #2E8B57); /* Gradient background */
+    padding: 20px;
+    border-radius: 15px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Add shadow */
+}
+
+#chatMessages {
+    height: 200px;
+    overflow-y: auto;
+    background-color: #2E8B57; /* Sea green background */
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1); /* Add inner shadow */
+}
+
+#chatMessages div {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add shadow */
+}
+
+#chatForm {
+    display: flex;
+    gap: 10px;
+}
+
+#chatInput {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    font-size: 14px;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1); /* Add inner shadow */
+}
+
+#chatForm button {
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    background-color: #4CAF50; /* Green background */
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Add shadow */
+}
+
+#chatForm button:hover {
+    background-color: #45a049; /* Darker green on hover */
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); /* Add hover effect */
+}
+
+#chatForm button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Add active effect */
+}
+
+/* Chat message styling */
+.chat-message {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add shadow */
+    color: white; /* Ensure text color is white for better contrast */
+}
+
+/* Alternate background colors for chat messages */
+.chat-message:nth-child(odd) {
+    background-color: #3CB371; /* Medium sea green background */
+}
+
+.chat-message:nth-child(even) {
+    background-color: #2E8B57; /* Sea green background */
+}
 /* ...existing code... */

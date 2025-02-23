@@ -11,7 +11,24 @@
         <input type="text" id="username" placeholder="Enter your username" required>
         <button type="submit">Join Game</button>
     </form>
-    <button id="startGameButton" style="display:none;">Start Game</button>
+
+    <div id="lobby">
+        <h2>Lobby</h2>
+        <div id="lobbyPlayers"></div>
+        <div id="chatRoom">
+            <form id="chatNameForm">
+                <input type="text" id="chatName" placeholder="Enter your chat name" required>
+                <button type="submit">Set Chat Name</button>
+            </form>
+            <div id="chatMessages"></div>
+            <form id="chatForm" style="display: none;">
+                <input type="text" id="chatInput" placeholder="Type a message" required>
+                <button type="submit">Send</button>
+            </form>
+        </div>
+        <button id="startButton">Start</button>
+    </div>
+
     <div id="gameRoom">
         <div id="bottomChair" class="chair"></div>
         <div id="leftChair" class="chair"></div>
@@ -48,6 +65,7 @@
                 <span class="player-col">Player</span>
                 <span class="bid-col">Bid</span>
                 <span class="trick-wins">Win</span>
+                <span class="final-result">Result</span>
             </div>
         </div>
             <div id="bidValues" class="bid-values"></div>

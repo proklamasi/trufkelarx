@@ -7,6 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
+
 app.use(express.static('public'));
 
 let game = new TrufGame();
@@ -30,19 +31,82 @@ function calculateExpectedCards(game) {
     return total;
 }
 
+
+function calculateFinalResult(bid, win, gameMode) {
+    if (bid === 0 && win === 0) {
+        return 10;
+    }
+
+    if (bid === 0 && win === 1) {
+        return gameMode === 'Main Bawah' ? -12 : -11;
+    }
+
+    if (bid === win) {
+        return bid;
+    }
+
+    if (gameMode === 'Main Bawah') {
+        if (win < bid) {
+            return win - bid;
+        } else {
+            return -2 * (win - bid);
+        }
+    } else if (gameMode === 'Main Atas') {
+        if (win < bid) {
+            return -2 * (bid - win);
+        } else {
+            return win - bid;
+        }
+    }
+
+    return 0; // Default case, should not be reached
+}
+
+
+let connectedPlayers = 0;
+let lobbyPlayers = [];
+
+
 io.on('connection', (socket) => {
-    console.log('New client connected');
+    console.log('New client connected. Total connected players:', connectedPlayers);
+
+    socket.on('joinLobby', () => {
+        const player = { id: socket.id, name: `Player ${lobbyPlayers.length + 1}` };
+        lobbyPlayers.push(player);
+        io.emit('lobbyUpdated', lobbyPlayers);
+        socket.emit('lobbyJoined', player); // Inform the player that they have joined the lobby
+    });
+
+    // Handle chat messages
+    socket.on('chatMessage', (data) => {
+        io.emit('chatMessage', data); // Broadcast the message to all connected clients
+    });
+    
+    socket.on('disconnect', () => {
+        lobbyPlayers = lobbyPlayers.filter(player => player.id !== socket.id);
+        io.emit('lobbyUpdated', lobbyPlayers);
+    });
 
     socket.on('joinGame', (playerName) => {
+        // ... (username check)
         if (game.isUsernameTaken(playerName)) {
             socket.emit('joinGameError', 'Username already taken. Please choose another name.');
             return;
         }
+    
         const success = game.addPlayer({ id: socket.id, name: playerName });
         if (success) {
             console.log('Player added:', game.getGameState().players);
-            socket.emit('joinGameSuccess'); // Emit success event to the joining client
-            io.emit('gameUpdated', game.getGameState()); // Update all clients
+    
+            // *** Send the players data in the joinGameSuccess event ***
+            socket.emit('joinGameSuccess', { players: game.getGameState().players }); // Send players data
+    
+            io.emit('gameUpdated', game.getGameState());
+    
+            if (game.players.length === 4) {
+                game.startGame();
+                io.emit('gameStarted', game.getGameState());
+            }
         }
     });
 
@@ -55,35 +119,44 @@ io.on('connection', (socket) => {
         }
     });
 
-
-    // Add before socket events
+     // Add before socket events
     function areAllBidsPlaced(game) {
         return game.players.every(player => player.bidType);
     }
 
+  
     socket.on('placeBid', (data) => {
         const player = game.players.find(p => p.id === socket.id);
         if (!player) return;
 
         console.log(`Player ${player.name} placing bid: ${data.type}`);
         player.bidType = data.type;
-
+        player.bid = data.bid; // Ensure the bid value is set
+        
         console.log('Current bid types:');
         game.players.forEach(p => {
             console.log(`- ${p.name}: ${p.bidType || 'not set'}`);
         });
 
+         // Calculate expected cards after each bid
+        const expectedCards = calculateExpectedCards(game);
+
         io.emit('bidPlaced', {
             playerId: socket.id,
-            bidType: data.type
+            bidType: data.type,
+            bid: data.bid, // Include the bid value in the emitted event
+            totalExpectedCards: expectedCards,
+            phase: game.phase,
+            allBidsComplete: game.players.every(p => p.bidType)
         });
+        
+          // Check if all players have bid
+        if (areAllBidsPlaced(game)) {
+            console.log('All players have placed bids');
+            game.biddingComplete = true;
+        }
     });
 
-    // Check if all players have bid
-    if (areAllBidsPlaced(game)) {
-        console.log('All players have placed bids');
-        game.biddingComplete = true;
-    }
 
 socket.on('playCard', (data) => {
     const playerIndex = game.players.findIndex(player => player.id === data.playerId);
@@ -220,10 +293,10 @@ socket.on('playCard', (data) => {
                         
                         // Move this block up here and remove the duplicate below
                         game.gameMode = gameMode;
-                        game.phase = 'playing1-phase';
-                        game.currentTurn = game.bidWinner;  // Set current turn to bid winner
-                        io.emit('phaseChanged', game.phase);
-                        io.emit('updateCurrentTurn', game.bidWinner.id);  // Notify clients about the current turn
+                        //game.phase = 'playing1-phase';
+                        //game.currentTurn = game.bidWinner;  // Set current turn to bid winner
+                        //io.emit('phaseChanged', game.phase);
+                        //io.emit('updateCurrentTurn', game.bidWinner.id);  // Notify clients about the current turn
                     }
 
                     // Update truf suit
@@ -240,16 +313,22 @@ socket.on('playCard', (data) => {
                     io.emit('updateHands', game.getGameState().players);
                     io.emit('clearPiles');
                     game.pile = [];
+                    game.phase = 'playing1-phase';
+                    io.emit('phaseChanged', game.phase);
+                    console.log('Phase changed to playing1-phase:', game.phase);
+                    game.currentTurn = game.bidWinner;
+                    io.emit('updateCurrentTurn', game.currentTurn.id);
+                    console.log('Current turn updated to bid winner:', game.currentTurn.id);
 
                     // Set winner and phase
                     game.bidWinner = game.players[highestBidRankCard.playerIndex];
-                    game.phase = 'playing1-phase';
-                    game.currentTurn = game.bidWinner;
+                    //game.phase = 'playing1-phase';
+                    //game.currentTurn = game.bidWinner;
                     
                     // Emit final updates
                     io.emit('updateBidWinner', game.bidWinner.name);
-                    io.emit('phaseChanged', game.phase);
-                    io.emit('updateCurrentTurn', game.currentTurn.id);
+                    //io.emit('phaseChanged', game.phase);
+                    //io.emit('updateCurrentTurn', game.currentTurn.id);
                 }
             }, 3000);
         }, 2000);
@@ -283,10 +362,10 @@ socket.on('chooseGameMode', (data) => {
     io.emit('updateBidValues', updatedValues);
     io.emit('updateGameMode', gameMode);
     
-    game.phase = 'playing1-phase';
-    game.currentTurn = game.bidWinner;
-    io.emit('phaseChanged', game.phase);
-    io.emit('updateCurrentTurn', game.currentTurn.id);
+    //game.phase = 'playing1-phase';
+    //game.currentTurn = game.bidWinner;
+    //io.emit('phaseChanged', game.phase);
+    //io.emit('updateCurrentTurn', game.currentTurn.id);
 });
 
 // Add new event handler for playing cards in playing1-phase
@@ -334,6 +413,7 @@ socket.on('playCardPlaying1', (data) => {
 
     // If all 4 cards played, determine winner
     if (game.pile.length === 4) {
+        io.to(player.id).emit('handUpdated', { hand: player.hand }); 
         // First flip any face-down cards
         game.pile.forEach(play => {
             if (!play.faceUp) {
@@ -347,6 +427,7 @@ socket.on('playCardPlaying1', (data) => {
                 });
             }
         });
+
 
         // Wait for flip animation, then handle winner and cleanup
         setTimeout(() => {
@@ -394,6 +475,7 @@ socket.on('flipCard', (data) => {
         io.to(player.id).emit('cardFlipped', { pileIds: perspectivePileId, card: data.card, faceUp: data.faceUp });
     });
 });
+    
 
 socket.on('resetGame', () => {
     game.resetGame();
@@ -404,6 +486,8 @@ socket.on('requestHands', () => {
     io.to(socket.id).emit('updateHands', game.getGameState().players);
 });
 
+
+
 // Update roundWinner emission to include trick wins
 socket.on('roundWinner', (data) => {
     const gameState = game.recordTrickWin(data.winnerName);
@@ -413,8 +497,21 @@ socket.on('roundWinner', (data) => {
     });
 });
 
+
+// Example event handler for ending the round
+socket.on('endRound', ({ bidValues, winValues, gameMode }) => {
+    const resultValues = bidValues.map((bid, index) => {
+        const win = winValues[index];
+        return calculateFinalResult(bid, win, gameMode);
+    });
+
+    // Emit the endOfRound event to all clients with the calculated results
+    io.emit('endOfRound', { bidValues, winValues, gameMode, resultValues });
+    io.to(player.id).emit('handUpdated', { hand: player.hand }); 
+});
+
 socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    console.log('Client disconnected', socket.id);
     game.removePlayer(socket.id);
     io.emit('gameUpdated', game.getGameState());
     
@@ -422,12 +519,14 @@ socket.on('disconnect', () => {
     if (!game.isActive()) {
         game = new TrufGame();
         console.log('Game reset - all players disconnected');
-    }
+        }
+    });
 });
-});
+
 
 const PORT = process.env.PORT || 3000;
 
-server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+server.listen(3000, () => {
+    console.log('Server is running on port 3000');
+    io.emit('serverReady'); // Emit the 'serverReady' event AFTER server is fully up
 });
